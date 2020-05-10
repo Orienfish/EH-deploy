@@ -1,5 +1,4 @@
-function dataT = preprocess(f_list, dataT_sav, thres)
-% Preprocess the existing data in ./data folder.
+%% Preprocess the existing data in ./data folder.
 % Convert historical readings into average, variance and count.
 % A struct with name, location, and statistical parameters are returned.
 %
@@ -9,6 +8,8 @@ function dataT = preprocess(f_list, dataT_sav, thres)
 %
 % Return:
 %   dataT: statistical pattern of the data in a table
+
+function dataT = preprocess(f_list, dataT_sav)
 
 % initialize data table dataT
 varNames = {'name', 'lat', 'lon', 'obs_cnt', ...

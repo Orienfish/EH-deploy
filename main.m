@@ -5,7 +5,7 @@ close all;
 warning('off','all');
 addpath('./lldistkm');
 
-%% preparation
+%% initialize grid map
 % pre-process solar and temperature data
 fprintf('start pre-processing...\n');
 folder = './solardata/';
@@ -18,28 +18,25 @@ else
     dataT = preprocess(f_list, dataT_sav);
 end
 
-% get data source D
-D_lat = vertcat(dataT.lat(:));
-D_lon = vertcat(dataT.lon(:));
-D = horzcat(D_lat, D_lon);
-bubbleplot_wsize(dataT.lat(:), dataT.lon(:), dataT.temp_avg(:), 'data source');
-origin = [min(D_lat), min(D_lon)];
-yScalekm = lldistkm([min(D_lat), min(D_lon)], [max(D_lat), min(D_lon)]);
-xScalekm = lldistkm([min(D_lat), min(D_lon)], [min(D_lat), max(D_lon)]);
+% get data source distribution
+bubbleplot_wsize(dataT.lat, dataT.lon, dataT.temp_avg, 'data source');
+origin = [min(dataT.lat), min(dataT.lon)];
+yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT.lon)]);
+xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
 
 % set the size and granularity of the grid space 
-xScalem_target = 2000; % 2000 m
-yScalem_target = 2000; % 2000 m
+xScalem_target = 1000;      % 2000 m
+yScalem_target = 1000;      % 2000 m
 N_x = 11;
 N_y = 11;
-N_cnt = N_x * N_y;
+N_cnt = N_x * N_y;          % number of grid points
 Unit_x = floor(xScalem_target / (N_x - 1));
 Unit_y = floor(yScalem_target / (N_y - 1));
 
 % the factor to transform from grid (m) to lat and lon
 % x - longitude, y - latitude
-x_transform = (max(D_lon) - min(D_lon)) / xScalem_target;
-y_transform = (max(D_lat) - min(D_lat)) / yScalem_target;
+x_transform = (max(dataT.lon) - min(dataT.lon)) / xScalem_target;
+y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem_target;
 
 % generate the grid candidate set N 
 % with their x, y coordinates and temperature and DNI
@@ -53,12 +50,29 @@ for j = 0:N_y-1
         N(i + j * N_x + 1).position = [Unit_x * i, Unit_y * j];
         x_lon = Unit_x * i * x_transform + origin(2);
         y_lat = Unit_y * j * y_transform + origin(1);
-        %dataT_idx = ;
-        %N(i + j * N_x + 1).Ri = dataT(dataT_idx)....;
-        %N(i + j * N_x + 1).Ti = dataT(dataT_idx).temp_avg.
+        % find the closest location in dataT
+        [minValue, dataT_idx] = min(abs(dataT.lat - y_lat) + ...
+            abs(dataT.lon - x_lon));
+        % assign the corresponding recharging power in W
+        % 0.1 conversion efficiency, 0.01m2 solar panel, w/m2 radiation
+        N(i + j * N_x + 1).Ri = 0.1 * 0.01 * dataT.dni_avg(dataT_idx);
+        % assign the corresponding temperature in Celsius
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
     end
 end
 
+%% prepare for constraints
+S_r = 100;          % sensing range in m
+C_r = 120;          % communication range in m
+N_o = 15;           % number of PoIs
+% randomly generate PoIs to monitor
+O = repmat([], N_o, 1);
+for i = 1:N_o
+    O(i, 1) = unifrnd(0, xScalem_target);
+    O(i, 2) = unifrnd(0, yScalem_target);
+end
+% coverage constraint
+A = cover_matrix(O, N, S_r);
 
 %% plot functions
 function bubbleplot_wsize(lat, lon, sizedata, title)
