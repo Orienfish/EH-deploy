@@ -74,6 +74,37 @@ end
 % coverage constraint
 A = cover_matrix(O, N, S_r);
 
+%% call the solver
+% objective
+fun = @(x) ones(1, N_cnt)*x;    % Objective Function f(x)
+
+% constraints
+A = -A;                         % Linear Inequality Constraints (Ax <= b)
+b = -ones(N_o, 1);
+
+% bounds
+lb = zeros(N_cnt, 1);
+ub = ones(N_cnt, 1);
+
+% integer constraints
+nC = 0;                        % Number of Continuous Variables
+nI = 0;                        % Number of Integer Variables
+nB = N_cnt;                        % Number of Binary Variables
+
+% Build xtype vector
+xtype = [repmat('C', 1, nC), repmat('I', 1, nI), repmat('B', 1, nB)];
+
+% initial guess
+x0 = zeros(N_cnt, 1);
+
+% Create OPTI Object
+%Opt = opti('fun',fun,'nlmix',nlcon,nlrhs,nle,'ineq',A,b,'bounds',lb,ub,...
+%           'xtype',xtype)
+Opt = opti('fun', fun, 'ineq', A, b, 'bounds', lb, ub, 'xtype', xtype)
+
+% Solve the MINLP problem
+[x,fval,exitflag,info] = solve(Opt,x0)
+
 %% plot functions
 function bubbleplot_wsize(lat, lon, sizedata, title)
     % plot the locations
