@@ -3,7 +3,7 @@ clc;
 clear;
 close all;
 warning('off','all');
-addpath('./lldistkm');
+addpath('./lldistkm/');
 
 %% initialize grid map
 % pre-process solar and temperature data
@@ -25,8 +25,8 @@ yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT
 xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
 
 % set the size and granularity of the grid space 
-xScalem_target = 1000;      % 2000 m
-yScalem_target = 1000;      % 2000 m
+xScalem_target = 1000;      % m
+yScalem_target = 1000;      % m
 N_x = 11;
 N_y = 11;
 N_cnt = N_x * N_y;          % number of grid points
@@ -62,11 +62,11 @@ for j = 0:N_y-1
 end
 
 %% prepare for constraints
-S_r = 100;          % sensing range in m
+S_r = 120;          % sensing range in m
 C_r = 120;          % communication range in m
-N_o = 15;           % number of PoIs
+N_o = 25;           % number of PoIs
 % randomly generate PoIs to monitor
-O = repmat([], N_o, 1);
+O = repmat([], N_o, 2);
 for i = 1:N_o
     O(i, 1) = unifrnd(0, xScalem_target);
     O(i, 2) = unifrnd(0, yScalem_target);
@@ -91,26 +91,39 @@ nC = 0;                        % Number of Continuous Variables
 nI = 0;                        % Number of Integer Variables
 nB = N_cnt;                        % Number of Binary Variables
 
-% Build xtype vector
+% build xtype vector
 xtype = [repmat('C', 1, nC), repmat('I', 1, nI), repmat('B', 1, nB)];
 
 % initial guess
 x0 = zeros(N_cnt, 1);
 
-% Create OPTI Object
+% create OPTI Object
 %Opt = opti('fun',fun,'nlmix',nlcon,nlrhs,nle,'ineq',A,b,'bounds',lb,ub,...
 %           'xtype',xtype)
 Opt = opti('fun', fun, 'ineq', A, b, 'bounds', lb, ub, 'xtype', xtype)
 
-% Solve the MINLP problem
+% solve the MINLP problem
 [x,fval,exitflag,info] = solve(Opt,x0)
 
+% plot the solution
+plot_solution(N, O, x);
+
 %% plot functions
+% plot the locations
 function bubbleplot_wsize(lat, lon, sizedata, title)
-    % plot the locations
     figure;
     geobubble(lat, lon, sizedata, 'Title', title);
     ax = gca; % get current axes
     ax.FontSize = 16;
     %geobasemap streets-light; % set base map style
+end
+
+% plot the solution in the grid space
+function plot_solution(N, O, x)
+    figure;
+    nodes = vertcat(N.position);
+    nodes = vertcat(nodes, O);
+    sz = 10;
+    color = vertcat(x, repmat(2, size(O, 1), 1));
+    scatter(nodes(:, 1), nodes(:, 2), sz, color);
 end

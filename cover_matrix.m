@@ -17,7 +17,11 @@ A = zeros(N_o, N_cnt);  % initialize A
 
 for i = 1:N_o
     for j = 1:N_cnt
-        if norm(O(i) - N(j).position) < S_r
+        if norm(O(i, :) - N(j).position) <= S_r
+            %fprintf('O %d: (%f %f)\n', i, O(i, 1), O(i, 2));
+            %fprintf('N %d: (%f %f)\n', j, N(j).position(1), N(j).position(2));
+            %fprintf('dist: %f\n', norm(O(i, :) - N(j).position));
+            disp(O(i, :) - N(j).position);
             A(i, j) = 1;
         end
     end
