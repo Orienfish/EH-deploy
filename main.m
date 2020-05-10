@@ -65,6 +65,7 @@ end
 S_r = 120;          % sensing range in m
 C_r = 120;          % communication range in m
 N_o = 25;           % number of PoIs
+K = 2;              % K-coverage
 % randomly generate PoIs to monitor
 O = repmat([], N_o, 2);
 for i = 1:N_o
@@ -80,7 +81,7 @@ fun = @(x) ones(1, N_cnt)*x;    % Objective Function f(x)
 
 % constraints
 A = -A;                         % Linear Inequality Constraints (Ax <= b)
-b = -ones(N_o, 1);
+b = -repmat(K, N_o, 1);
 
 % bounds
 lb = zeros(N_cnt, 1);
