@@ -30,15 +30,16 @@ xScalekm = lldistkm([min(D_lat), min(D_lon)], [min(D_lat), max(D_lon)]);
 % set the size and granularity of the grid space 
 xScalem_target = 2000; % 2000 m
 yScalem_target = 2000; % 2000 m
-N_x = 10;
-N_y = 10;
+N_x = 11;
+N_y = 11;
 N_cnt = N_x * N_y;
-Unit_x = floor(xScalem_target / N_x);
-Unit_y = floor(yScalem_target / N_y);
+Unit_x = floor(xScalem_target / (N_x - 1));
+Unit_y = floor(yScalem_target / (N_y - 1));
 
-% the factor to transform from grid (m) to real field (km)
-x_transform = xScalekm / xScalem_target;
-y_transform = yScalekm / yScalem_target;
+% the factor to transform from grid (m) to lat and lon
+% x - longitude, y - latitude
+x_transform = (max(D_lon) - min(D_lon)) / xScalem_target;
+y_transform = (max(D_lat) - min(D_lat)) / yScalem_target;
 
 % generate the grid candidate set N 
 % with their x, y coordinates and temperature and DNI
@@ -49,12 +50,12 @@ N = repmat(empty_point, N_cnt, 1);
 
 for j = 0:N_y-1
     for i = 0:N_x-1
-        N(i + j*N_x+1).position = [Unit_x * i, Unit_y * j];
-        %x_idx = ;
-        %y_idx = ;
+        N(i + j * N_x + 1).position = [Unit_x * i, Unit_y * j];
+        x_lon = Unit_x * i * x_transform + origin(2);
+        y_lat = Unit_y * j * y_transform + origin(1);
         %dataT_idx = ;
-        %N(i).Ri = dataT(dataT_idx)....;
-        %N(i).Ti = dataT(dataT_idx).temp_avg.
+        %N(i + j * N_x + 1).Ri = dataT(dataT_idx)....;
+        %N(i + j * N_x + 1).Ti = dataT(dataT_idx).temp_avg.
     end
 end
 
