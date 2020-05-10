@@ -106,7 +106,7 @@ Opt = opti('fun', fun, 'ineq', A, b, 'bounds', lb, ub, 'xtype', xtype)
 [x,fval,exitflag,info] = solve(Opt,x0)
 
 % plot the solution
-plot_solution(N, O, x);
+plot_solution(N, O, x, S_r);
 
 %% plot functions
 % plot the locations
@@ -119,11 +119,15 @@ function bubbleplot_wsize(lat, lon, sizedata, title)
 end
 
 % plot the solution in the grid space
-function plot_solution(N, O, x)
+function plot_solution(N, O, x, S_r)
+    color_map = [[0 0.4470 0.7410]; ...       % blue
+        [0.8500 0.3250 0.0980]; ...           % orange
+        [0.4660 0.6740 0.1880]];              % green
+    nodes = vertcat(N.position);              % grid points
+    nodes = vertcat(nodes, O);                % PoIs
+    sz_nodes = repmat(10, size(nodes, 1), 1); % const size for nodes
+    color_idx = vertcat(x, repmat(2, size(O, 1), 1)) + 1;
+    color_nodes = vertcat(color_map(color_idx, :));
     figure;
-    nodes = vertcat(N.position);
-    nodes = vertcat(nodes, O);
-    sz = 10;
-    color = vertcat(x, repmat(2, size(O, 1), 1));
-    scatter(nodes(:, 1), nodes(:, 2), sz, color);
+    scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes);
 end
