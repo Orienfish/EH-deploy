@@ -22,11 +22,11 @@ for i = 1:N_cnt
         if norm(N(i).position - N(j).position) > C_r
             % set the flow from node i to j to zero
             line = zeros(1, v_cnt);
-            line(xform.fij_base + i * N_cnt + j) = 1;
+            line(xform.fij_base + (i-1) * N_cnt + j) = 1;
             Aeq = [Aeq; line];
             % set the flow from node j to i to zero
             line = zeros(1, v_cnt);
-            line(xform.fij_base + j * N_cnt + i) = 1;
+            line(xform.fij_base + (j-1) * N_cnt + i) = 1;
             Aeq = [Aeq; line];
             fprintf('%d, %d\n', i, j);
         end
