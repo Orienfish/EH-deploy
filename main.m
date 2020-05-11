@@ -88,23 +88,22 @@ b = repmat(K, N_o, 1);
 
 %% call the solver
 % objective
-fun = @(x) v_x*x;    % Objective Function f(x)
+fun = @(x, s, eta, fij, fiB) ones(N_cnt, 1)*x;    % Objective Function f(x)
 
 % linear inequality constraints
 A = -A;                         % Linear Inequality Constraints (Ax <= b)
 b = -b;
 % linear equality constraint
-Aeq_set = [zeros(2*N_cnt, N_cnt), eye(2*N_cnt), zeros(2*N_cnt, v_cnt-3*N_cnt)];
-beq_set = zeros(2*N_cnt, 1);
+Aeq_set = [zeros(N_cnt, N_cnt), eye(N_cnt), zeros(N_cnt, v_cnt-2*N_cnt)];
+beq_set = zeros(N_cnt, 1);
 [Aeq_infeasible, beq_infeasible] = flow_infeasible(N, v_cnt, 3*N_cnt, C_r);
 Aeq = [Aeq_set; Aeq_infeasible];
 beq = [beq_set; beq_infeasible];
 
-
 % nonlinear constraints
-nlcon = @(x) getPower(x, G, B, N, c);
-nlrhs = vertcat(N(:).Ri);
-nle = repmat(-1, N_cnt, 1);     % -1 for <=, 0 for ==, +1 >=  
+nlcon = @(x) [getPower(x, G, B, N, c); flow(x, G)];
+nlrhs = [vertcat(N(:).Ri), zeros(N_cnt+1, 1)];
+nle = repmat(-1, 2*N_cnt+1, 1); % -1 for <=, 0 for ==, +1 >=  
 
 % bounds
 lb = zeros(v_cnt, 1);

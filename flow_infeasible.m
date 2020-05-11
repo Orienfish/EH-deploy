@@ -9,6 +9,7 @@
 % Return:
 %   Aeq, beq: the equality constraint fed to the solver to filter out
 %             infeasible flows. Each constraint set one flow to zero.
+
 function [Aeq, beq] = flow_infeasible(N, v_cnt, flow_base, C_r)
 % get the number of grid points
 N_cnt = size(N, 1);
