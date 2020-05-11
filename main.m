@@ -83,15 +83,20 @@ v_cnt = N_cnt + N_cnt + N_cnt + N_cnt^2 + N_cnt; % x, s, eta, fij, fiB
 % useful parameters
 % cnt: number of variables in this type.
 % base: number of variables before this type.
-x_cnt = N_cnt; x_base = 0;
-s_cnt = N_cnt; s_base = N_cnt;
-eta_cnt = N_cnt; eta_base = 2*N_cnt;
-fij_cnt = N_cnt^2; fij_base = 3*N_cnt;
-fiB_cnt = N_cnt; fiB_base = 3*N_cnt + N_cnt^2;
+xform.x_cnt = N_cnt; xform.x_base = 0; 
+xform.x_end = xform.x_base + xform.x_cnt;
+xform.s_cnt = N_cnt; xform.s_base = N_cnt; 
+xform.s_end = xform.s_base + xform.s_cnt;
+xform.eta_cnt = N_cnt; xform.eta_base = 2*N_cnt; 
+xform.eta_end = xform.eta_base + xform.eta_cnt;
+xform.fij_cnt = N_cnt^2; xform.fij_base = 3*N_cnt;
+xform.fij_end = xform.fij_base + xform.fij_cnt;
+xform.fiB_cnt = N_cnt; xform.fiB_base = 3*N_cnt + N_cnt^2;
+xform.fiB_end = xform.fiB_base + xform.fij_cnt;
 
 %% call the solver
 % objective
-v_x = [ones(1, x_cnt), zeros(1, v_cnt-s_base)];
+v_x = [ones(1, xform.x_cnt), zeros(1, v_cnt-xform.x_end)];
 fun = @(x) v_x*x;    % Objective Function f(x)
 
 % linear inequality coverage constraints padded to N_o * v_cnt
@@ -99,27 +104,29 @@ A = -cover_matrix(O, N, S_r, v_cnt);
 b = -repmat(K, N_o, 1);
 % linear equality constraint
 % set s to zeros
-Aeq_set = [zeros(s_cnt, x_cnt), eye(x_cnt), zeros(x_cnt, v_cnt-eta_base)];
-beq_set = zeros(s_cnt, 1);
+Aeq_set = [zeros(xform.s_cnt, xform.x_cnt), eye(xform.x_cnt), ...
+    zeros(xform.x_cnt, v_cnt-xform.s_end)];
+beq_set = zeros(xform.s_cnt, 1);
 % infeasible flows
-[Aeq_infeasible, beq_infeasible] = flow_infeasible(N, v_cnt, fij_base, C_r);
+[Aeq_infeasible, beq_infeasible] = flow_infeasible(N, v_cnt, xform, C_r);
 Aeq = [Aeq_set; Aeq_infeasible];
 beq = [beq_set; beq_infeasible];
 
 % nonlinear constraints
-nlcon = @(x) [getPower(x, G, B, N, c); flow(x, G, N_cnt)];
+nlcon = @(x) [getPower(x, G, B, N, c); flow(x, G, N_cnt, xform)];
 nlrhs = [vertcat(N(:).Ri); zeros(N_cnt+1, 1)];
 % -1 for <=, 0 for ==, +1 >=  
 nle = [repmat(-1, N_cnt, 1); zeros(N_cnt+1, 1)];
 
 % bounds
-lb = [zeros(eta_base, 1); repmat(L_eta, eta_cnt, 1); zeros(v_cnt-fij_base, 1)];
-ub = [ones(fij_base, 1); Inf(v_cnt-fij_base, 1)];
+lb = [zeros(xform.eta_base, 1); repmat(L_eta, xform.eta_cnt, 1); ...
+    zeros(v_cnt-xform.eta_end, 1)];
+ub = [ones(xform.fij_base, 1); Inf(v_cnt-xform.fij_base, 1)];
 
 % integer constraints
-nB = x_cnt + s_cnt;                 % Number of Binary Variables
-nC = eta_cnt + fij_cnt + fiB_cnt;   % Number of Continuous Variables
-nI = 0;                             % Number of Integer Variables
+nB = xform.x_cnt + xform.s_cnt;                    % Number of Binary Variables
+nC = xform.eta_cnt + xform.fij_cnt + xform.fiB_cnt;% Number of Continuous Variables
+nI = 0;                                            % Number of Integer Variables
 
 % build xtype vector
 xtype = [repmat('B', 1, nB), repmat('C', 1, nC), repmat('I', 1, nI)];
