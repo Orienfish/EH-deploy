@@ -18,6 +18,10 @@ P0 = 0.01;                  % sleep power (W)
 Ps = 0.2;                   % sensing power (W)
 Prx = 0.1;                  % reception power (W)
 
+% get the transformation matrix to extract x and eta
+T_x = [eye(N_cnt), zeros(N_cnt, v_cnt - N_cnt)];
+T_eta = [zeros(N_cnt, 2*N_cnt), eye(N_cnt), zeros(N_cnt, V_cnt - 3*N_cnt)];
+
 % calculate the transmission power matrix
 [Ptx, PtxB] = getPtx(N, N_cnt, c);
 %disp(Ptx);
@@ -31,7 +35,7 @@ T_fiB = [zeros(N_cnt, v_cnt - N_cnt), eye(N_cnt)];
 fiB = T_fiB * x;                   % (i) is flow from i to B
 
 % calculate the power vector
-P = repmat(P0, N_cnt, 1) + ...
+P = repmat(P0, N_cnt, 1) + G * (T_x * x) .* (T_eta * x) + ...
     1/B * diag(Ptx * fij' + Prx * ones(N_cnt) * fij) + 1/B * PtxB .* fiB;
 end
 
