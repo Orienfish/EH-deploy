@@ -28,6 +28,7 @@ for i = 1:N_cnt
             line = zeros(1, v_cnt);
             line(flow_base + j * N_cnt + i) = 1;
             Aeq = [Aeq; line];
+            fprintf('%d, %d\n', i, j);
         end
     end
 end

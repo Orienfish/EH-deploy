@@ -23,6 +23,12 @@ fij = reshape(fij, N_cnt, N_cnt)'; % (i, j) is flow from i to j
 T_fiB = [zeros(N_cnt, v_cnt - N_cnt), eye(N_cnt)];
 fiB = T_fiB * x;                   % (i) is flow from i to B
 
-Z = 
+% get the flow conservation at each grid point, Z is N_cnt * 1 here
+Z = G * (T_x * x) .* (T_eta * x) + sum(fij, 1)' ... % in flow, sum of each col
+    - sum(fij, 2) - fiB;                            % out flow, sum of each row
+% all flows should be transmitted to sink
+to_sink = sum(G * (T_x * x) .* (T_eta * x)) - sum(fiB);
+% combine together to the (N_cnt+1) * 1 vector
+Z = [Z; to_sink];
 end
 
