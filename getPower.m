@@ -20,7 +20,7 @@ Prx = 0.1;                  % reception power (W)
 
 % get the transformation matrix to extract x and eta
 T_x = [eye(N_cnt), zeros(N_cnt, v_cnt - N_cnt)];
-T_eta = [zeros(N_cnt, 2*N_cnt), eye(N_cnt), zeros(N_cnt, V_cnt - 3*N_cnt)];
+T_eta = [zeros(N_cnt, 2*N_cnt), eye(N_cnt), zeros(N_cnt, v_cnt - 3*N_cnt)];
 
 % calculate the transmission power matrix
 [Ptx, PtxB] = getPtx(N, N_cnt, c);
