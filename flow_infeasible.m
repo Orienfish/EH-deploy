@@ -28,7 +28,7 @@ for i = 1:N_cnt
             line = zeros(1, v_cnt);
             line(xform.fij_base + (j-1) * N_cnt + i) = 1;
             Aeq = [Aeq; line];
-            fprintf('%d, %d\n', i, j);
+            %fprintf('%d, %d\n', i, j);
         end
     end
 end
