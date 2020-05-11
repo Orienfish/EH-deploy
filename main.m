@@ -80,10 +80,6 @@ c = [xScalem_target/2, yScalem_target/2];
 % the binary vectors to locate each type of variable
 v_cnt = N_cnt + N_cnt + N_cnt + N_cnt^2 + N_cnt; % x, s, eta, fij, fiB
 v_x = [ones(1, N_cnt), zeros(1, v_cnt - N_cnt)];
-%v_s = [zeros(1, N_cnt), ones(1, N_cnt), zeros(1, v_cnt - 2*N_cnt)];
-%v_eta = [zeros(1, 2*N_cnt), ones(1, N_cnt), zeros(1, v_cnt - 3*N_cnt)];
-%v_fij = [zeros(1, 3*N_cnt), ones(1, N_cnt^2), zeros(1, N_cnt)];
-%v_fiB = [zeros(1, v_cnt - N_cnt), ones(1, N_cnt)];
 
 % coverage constraint padded to N_o * v_cnt
 A = cover_matrix(O, N, S_r, v_cnt);
@@ -94,12 +90,17 @@ b = repmat(K, N_o, 1);
 % objective
 fun = @(x) v_x*x;    % Objective Function f(x)
 
-% inequality constraints
+% linear inequality constraints
 A = -A;                         % Linear Inequality Constraints (Ax <= b)
 b = -b;
-% equality constraint
-Aeq = [zeros(v_cnt-N_cnt, N_cnt), eye(v_cnt-N_cnt)];
-beq = zeros(v_cnt-N_cnt, 1);
+% linear equality constraint
+Aeq = [zeros(2*N_cnt, N_cnt), eye(2*N_cnt), zeros(2*N_cnt, v_cnt-3*N_cnt)];
+beq = zeros(2*N_cnt, 1);
+
+% nonlinear constraints
+nlcon = @(x) getPower(x, G, B, N, c);
+nlrhs = vertcat(N(:).Ri);
+nle = repmat(-1, N_cnt, 1);     % -1 for <=, 0 for ==, +1 >=  
 
 % bounds
 lb = zeros(v_cnt, 1);
@@ -117,9 +118,8 @@ xtype = [repmat('B', 1, nB), repmat('C', 1, nC), repmat('I', 1, nI)];
 x0 = zeros(v_cnt, 1);
 
 % create OPTI Object
-%Opt = opti('fun',fun,'nlmix',nlcon,nlrhs,nle,'ineq',A,b,'bounds',lb,ub,...
-%           'xtype',xtype)
-Opt = opti('fun', fun, 'ineq', A, b, 'eq', Aeq, beq, 'bounds', lb, ub, 'xtype', xtype)
+Opt = opti('fun', fun, 'nlmix', nlcon, nlrhs, nle, 'ineq', A, b, ...
+        'bounds', lb, ub, 'eq', Aeq, beq, 'xtype', xtype)
 
 % solve the MINLP problem
 [x,fval,exitflag,info] = solve(Opt,x0)
