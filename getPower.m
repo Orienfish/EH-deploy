@@ -60,7 +60,7 @@ for i = 1:N_cnt
     end
 end
 % transform distance to transmission power
-Pto = 0.22;
+Pto = 0.12;
 alpha = 3.5;
 beta = 1e-8;
 Ptx = repmat(Pto, N_cnt, N_cnt) + beta * (dist .^ alpha);

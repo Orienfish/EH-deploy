@@ -27,8 +27,8 @@ xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT
 % set the size and granularity of the grid space 
 xScalem_target = 100;      % m
 yScalem_target = 100;      % m
-N_x = 3;
-N_y = 3;
+N_x = 4;
+N_y = 4;
 N_cnt = N_x * N_y;          % number of grid points
 Unit_x = floor(xScalem_target / (N_x - 1));
 Unit_y = floor(yScalem_target / (N_y - 1));
