@@ -10,7 +10,7 @@
 %
 % Reture:
 %   A, b: a N_cnt * v_cnt matrix and a N_cnt * 1 vector for power ENO
-%         constraint
+%         constraint A * x <= b
 
 function [A, b] = power_eno(eta, B, v_cnt, xform, N, dist, C_r)
 % initialization

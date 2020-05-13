@@ -155,9 +155,9 @@ nI = 0;                                   % Number of Integer Variables
 % build ctype vector
 ctype = [repmat('B', 1, nB), repmat('C', 1, nC), repmat('I', 1, nI)];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % initial guess
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 x0 = zeros(v_cnt, 1);
 
 %% call the solver
@@ -193,7 +193,6 @@ plot_solution(N, O, place, S_r);
 %         dist(i, j) denotes the Euclidean distance between grid i and j
 %         dist(i, N_cnt+1) denotes the Euclidean distance between i and
 %         sink
-
 function dist = getDist(N, c)
 N_cnt = size(N, 1);
 dist = zeros(N_cnt, N_cnt+1);
@@ -210,7 +209,6 @@ end
 
 %% plot functions
 % plot the locations
-
 function bubbleplot_wsize(lat, lon, sizedata, title)
     figure;
     geobubble(lat, lon, sizedata, 'Title', title);

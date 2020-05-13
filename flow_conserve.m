@@ -9,7 +9,7 @@
 %
 % Return:
 %   A, b: the generated N_cnt * v_cnt matrix and N_cnt * 1 vector for
-%         flow conservation constraint.
+%         flow conservation constraint A * x >= b
 function [A, b] = flow_conserve(G, eta, v_cnt, xform, dist, C_r)
 % initialization
 N_cnt = xform.x_cnt;          % number of grid nodes

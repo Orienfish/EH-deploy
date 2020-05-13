@@ -12,7 +12,7 @@
 %         constraint.
 %         Note that only the first N_cnt columns matter in the coverage 
 %         constraint.
-%         A * x >= k * 1
+%         A * x >= k * 1 <=> -A * x <= -b
 
 function [A, b] = coverage(O, N, S_r, v_cnt, K)
 
