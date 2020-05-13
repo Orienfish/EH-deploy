@@ -18,20 +18,21 @@ T_s = [zeros(xform.s_cnt, xform.x_cnt), eye(xform.s_cnt), ...
 % N_cnt * v_cnt matrix for si*eta*G
 A = G * eta * T_s;
 
+% set the coefficients for the flow part
 for i = 1:N_cnt
     for j = 1:N_cnt
         % outgoing flow from node i to node j, fij
         fij_idx = xform.fij_base + (i-1)*N_cnt + j;
         A(i, fij_idx) = -1;
-        % outgoing flow from node i to the sink, fiB
-        fiB_idx = xform.fiB_base + i;
-        A(i, fiB_idx) = -1;
         % incoming flow from node j to node i, fji
         fji_idx = xform.fij_base + (j-1)*N_cnt + i;
         A(i, fji_idx) = A(i, fji_idx) + 1; % so that fii = 0
     end
+    % outgoing flow from node i to the sink, fiB
+    fiB_idx = xform.fiB_base + i;
+    A(i, fiB_idx) = -1;
 end
-
+fprintf('flow conservation:\n');
 disp(A);
 b = zeros(N_cnt, 1);
 end

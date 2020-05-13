@@ -31,6 +31,7 @@ for i = 1:N_o
         end
     end
 end
+fprintf('coverage:\n');
 disp(A);
 A = -A;
 b = -repmat(K, N_o, 1);

@@ -128,9 +128,10 @@ T_s = [zeros(xform.s_cnt, xform.x_cnt), eye(xform.s_cnt), ...
     zeros(xform.s_cnt, v_cnt-xform.s_end)];
 Axs = T_s - T_x;
 bxs = zeros(N_cnt, 1);
+[Apwr, bpwr] = power_eno(eta, B, v_cnt, xform, N, c);
 % stack all inequality constraints
-Aineq = [Ac; Axs];
-bineq = [bc; bxs];
+Aineq = [Ac; Axs; Apwr];
+bineq = [bc; bxs; bpwr];
 
 % bounds
 lb = zeros(v_cnt, 1);
