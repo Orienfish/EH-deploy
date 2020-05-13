@@ -46,11 +46,11 @@ for i = 1:N_cnt
     if dist(i, N_cnt+1) <= C_r
         % outgoing flow from node i to the sink, fiB
         fiB_idx = xform.fiB_base + i;
-        A(i, fiB_idx) = (1/B) * dist(i, N_cnt+1);
+        A(i, fiB_idx) = (1/B) * getPtx(dist(i, N_cnt+1));
     end
 end
-fprintf('power eno:\n');
-disp(A);
+%fprintf('power eno:\n');
+%disp(A);
 b = vertcat(N(:).Ri) - repmat(P0, N_cnt, 1);
 disp(b);
 end

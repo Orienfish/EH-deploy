@@ -24,6 +24,9 @@ end
 % set the coefficients for the flow part
 for i = 1:N_cnt
     for j = 1:N_cnt
+        if i == j % avoid the same node
+            continue;
+        end
         if dist(i, j) <= C_r
             % outgoing flow from node i to node j, fij
             fij_idx = xform.fij_base + (i-1)*N_cnt + j;
@@ -36,8 +39,8 @@ for i = 1:N_cnt
         A(i, fiB_idx) = 1;
     end
 end
-fprintf('flow bound:\n');
-disp(A);
+%fprintf('flow bound:\n');
+%disp(A);
 b = zeros(N_cnt, 1);
 end
 

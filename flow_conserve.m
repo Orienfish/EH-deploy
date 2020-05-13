@@ -38,8 +38,8 @@ for i = 1:N_cnt
         A(i, fiB_idx) = -1;
     end
 end
-fprintf('flow conservation:\n');
-disp(A);
+%fprintf('flow conservation:\n');
+%disp(A);
 b = zeros(N_cnt, 1);
 end
 
