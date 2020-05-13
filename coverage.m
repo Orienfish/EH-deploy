@@ -3,7 +3,7 @@
 % Args:
 %   O: list of PoIs to monitor, [x, y] in each row
 %   N: the struct to record the grid space
-%   S_r: the binary sensing range
+%   S_r: the sensing radius
 %   v_cnt: the total number of variables
 %   K: predefined coverage level
 %
