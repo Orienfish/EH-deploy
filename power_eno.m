@@ -52,7 +52,7 @@ end
 %fprintf('power eno:\n');
 %disp(A);
 b = vertcat(N(:).Ri) - repmat(P0, N_cnt, 1);
-disp(b);
+%disp(b);
 end
 
 %% Get the transmission power from distance

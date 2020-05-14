@@ -48,6 +48,7 @@ empty_point.Ri = [];
 empty_point.Ti = [];
 N = repmat(empty_point, N_cnt, 1);
 
+% project the online dataset to our grid space
 for j = 0:N_y-1
     for i = 0:N_x-1
         N(i + j * N_x + 1).position = [Unit_x * i, Unit_y * j];
@@ -97,7 +98,7 @@ xform.s_end = xform.s_base + xform.s_cnt;
 xform.fij_cnt = N_cnt^2; xform.fij_base = 2*N_cnt;
 xform.fij_end = xform.fij_base + xform.fij_cnt;
 xform.fiB_cnt = N_cnt; xform.fiB_base = 2*N_cnt + N_cnt^2;
-xform.fiB_end = xform.fiB_base + xform.fij_cnt;
+xform.fiB_end = xform.fiB_base + xform.fiB_cnt;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objective Function f*x
@@ -165,7 +166,7 @@ fprintf('Calling CPLEX...\n');
 options = cplexoptimset;
 options.Display = 'On';
 [x, fval, exitflag, output] = cplexmilp(f, Aineq, bineq, Aeq, beq, ...
-    [], [], [], lb, ub, ctype, x0);
+    [], [], [], lb, ub, ctype, x0)
 
 % print the solution
 %T_x * x
@@ -176,12 +177,11 @@ options.Display = 'On';
 %fij = T_fij * x;
 %fij = reshape(fij, N_cnt, N_cnt)'; fij % (i, j) is flow from i to j 
 % extract flow to sink fiB (N_cnt * 1) from x
-%T_fiB = [zeros(xform.fiB_cnt, xform.fiB_base), eye(xform.fiB_cnt)];
-%fiB = T_fiB * x; fiB                   % (i) is flow from i to B
+T_fiB = [zeros(xform.fiB_cnt, xform.fiB_base), eye(xform.fiB_cnt)];
+fiB = T_fiB * x; fiB                   % (i) is flow from i to B
 
 % plot the solution
-place = x(1:xform.x_cnt); % extract the placement
-plot_solution(N, O, place, S_r);
+plot_solution(N, O, c, x, xform, S_r, [xScalem_target, yScalem_target]);
 
 %% Get distance matrix between grid points
 % Args:
@@ -218,15 +218,61 @@ function bubbleplot_wsize(lat, lon, sizedata, title)
 end
 
 % plot the solution in the grid space
-function plot_solution(N, O, x, S_r)
+function plot_solution(N, O, c, sol, xform, S_r, maxlim)
+    % intialization
+    N_cnt = size(N, 1);  % number of grid locations
+    
+    % extract different portion of the answer from solution vector
+    x = sol(xform.x_base+1: xform.x_end);
+    s = sol(xform.s_base+1: xform.s_end);
+    fij = sol(xform.fij_base+1: xform.fij_end);
+    fiB = sol(xform.fiB_base+1: xform.fiB_end);
+    
+    % scatter
     color_map = [[0 0.4470 0.7410]; ...       % blue
         [0.8500 0.3250 0.0980]; ...           % orange
-        [0.4660 0.6740 0.1880]];              % green
+        [0.4660 0.6740 0.1880]; ...           % green
+        [0.4940 0.1840 0.5560]];              % purple
     nodes = vertcat(N.position);              % grid points
-    nodes = vertcat(nodes, O);                % PoIs
-    sz_nodes = repmat(10, size(nodes, 1), 1); % const size for nodes
-    color_idx = vertcat(x, repmat(2, size(O, 1), 1)) + 1;
+    nodes = vertcat(nodes, O);                % append PoIs
+    nodes = vertcat(nodes, c);                % append the sink
+    sz_nodes = repmat(40, size(nodes, 1), 1); % const size for nodes
+    color_idx = vertcat(s, repmat(2, size(O, 1), 1), 3) + 1;
     color_nodes = vertcat(color_map(color_idx, :));
     figure;
-    scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes);
+    scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes, 'filled', ...
+        'LineWidth', 2);
+    hold on;
+    
+    % plot the coverage circle
+    cplot = @(r, x0, y0) plot(x0 + r * cos(linspace(0, 2*pi)), ...
+        y0 + r * sin(linspace(0, 2*pi)),'r-', 'LineWidth', 2);
+    for i = 1: N_cnt
+        if s(i) > 0
+            cplot(S_r, N(i).position(1), N(i).position(2));
+            axis equal;
+            hold on;
+        end
+    end
+    
+    % plot the line segment representing flows
+    ls = [];             % list of line segments
+    for i = 1:N_cnt
+        for j = 1:N_cnt
+            fij_idx = (i-1) * N_cnt + j;
+            if fij(fij_idx) > 0
+                ls = [ls; [N(i).position, N(j).position]];
+            end
+        end
+        if fiB(i) > 0
+            ls = [ls; [N(i).position, c]];
+        end
+    end
+    % plot all line segments
+    for i = 1:size(ls, 1)
+        plot([ls(i, 1), ls(i, 3)], [ls(i, 2), ls(i, 4)], 'b-', ...
+            'LineWidth', 2);
+        hold on;
+    end
+    xlim([0, maxlim(1)]); ylim([0, maxlim(2)]);
 end
