@@ -20,7 +20,8 @@ else
 end
 
 % get data source distribution
-bubbleplot_wsize(dataT.lat, dataT.lon, dataT.temp_avg, 'data source');
+bubbleplot_wsize(dataT.lat, dataT.lon, dataT.temp_avg, 'data source temp');
+bubbleplot_wsize(dataT.lat, dataT.lon, dataT.dni_avg, 'data source dni');
 origin = [min(dataT.lat), min(dataT.lon)];
 yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT.lon)]);
 xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
@@ -237,7 +238,7 @@ function plot_solution(N, O, c, sol, xform, S_r, maxlim)
     nodes = vertcat(nodes, O);                % append PoIs
     nodes = vertcat(nodes, c);                % append the sink
     sz_nodes = repmat(40, size(nodes, 1), 1); % const size for nodes
-    color_idx = vertcat(s, repmat(2, size(O, 1), 1), 3) + 1;
+    color_idx = vertcat(x, repmat(2, size(O, 1), 1), 3) + 1;
     color_nodes = vertcat(color_map(color_idx, :));
     figure;
     scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes, 'filled', ...
@@ -250,8 +251,7 @@ function plot_solution(N, O, c, sol, xform, S_r, maxlim)
     for i = 1: N_cnt
         if s(i) > 0
             cplot(S_r, N(i).position(1), N(i).position(2));
-            axis equal;
-            hold on;
+            axis equal; hold on;
         end
     end
     
