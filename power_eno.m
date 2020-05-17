@@ -56,13 +56,15 @@ b = vertcat(N(:).Ri) - repmat(P0, N_cnt, 1);
 if rel.SoH == true
     P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
     b = [b, P_soh - repmat(P0, N_cnt, 1)];
+    b = max(b, 0);
 end
 if rel.MTTF == true
     P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
     b = [b, P_mttf - repmat(P0, N_cnt, 1)];
+    b = max(b, 0);
 end
 disp(b);
-b = max(b, [], 2); % get the column vector of max of each row
+b = min(b, [], 2); % get the column vector of min of each row
 end
 
 %% Get the transmission power from distance

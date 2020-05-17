@@ -62,9 +62,11 @@ for j = 0:N_y-1
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
+        %N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
+        N(i + j * N_x + 1).Ti = 20 + (40 - 20) * j / N_y;
     end
 end
+plot_temp(N, N_x, N_y);
 
 %% prepare for constraints
 fprintf('Preparing for constraints...\n');
@@ -175,6 +177,8 @@ options = cplexoptimset;
 options.Display = 'On';
 [x, fval, exitflag, output] = cplexmilp(f, Aineq, bineq, Aeq, beq, ...
     [], [], [], lb, ub, ctype, x0);
+fval
+output
 
 % print the solution
 %T_x * x
@@ -223,6 +227,13 @@ function bubbleplot_wsize(lat, lon, sizedata, title)
     ax = gca; % get current axes
     ax.FontSize = 16;
     %geobasemap streets-light; % set base map style
+end
+
+function plot_temp(N, N_x, N_y)
+    temp = flipud(reshape(vertcat(N(:).Ti), [N_x, N_y])');
+    figure;
+    h = heatmap(1:N_x, 1:N_y, temp, 'Colormap', flipud(autumn), ...
+        'CellLabelColor','none', 'FontSize', 16);
 end
 
 % plot the solution in the grid space
