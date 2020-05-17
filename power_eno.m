@@ -7,12 +7,13 @@
 %   N: the struct of grid locations
 %   dist: the distance matrix between all grid locations and the sink
 %   C_r: the communication radius
+%   rel: the struct of reliability options and targets
 %
 % Reture:
 %   A, b: a N_cnt * v_cnt matrix and a N_cnt * 1 vector for power ENO
 %         constraint A * x <= b
 
-function [A, b] = power_eno(eta, B, v_cnt, xform, N, dist, C_r)
+function [A, b] = power_eno(eta, B, v_cnt, xform, N, dist, C_r, rel)
 % initialization
 N_cnt = xform.x_cnt;         % number of grid locations
 
@@ -52,7 +53,16 @@ end
 %fprintf('power eno:\n');
 %disp(A);
 b = vertcat(N(:).Ri) - repmat(P0, N_cnt, 1);
-%disp(b);
+if rel.SoH == true
+    P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
+    b = [b, P_soh - repmat(P0, N_cnt, 1)];
+end
+if rel.MTTF == true
+    P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
+    b = [b, P_mttf - repmat(P0, N_cnt, 1)];
+end
+disp(b);
+b = max(b, [], 2); % get the column vector of max of each row
 end
 
 %% Get the transmission power from distance
