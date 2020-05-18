@@ -6,7 +6,7 @@ warning('off','all');
 addpath ('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
 addpath('./lldistkm');
 
-%% initialize grid map
+%% Initialization of the grid map
 % pre-process solar and temperature data
 fprintf('start pre-processing...\n');
 folder = './solardata/';
@@ -68,8 +68,8 @@ for j = 0:N_y-1
 end
 plot_temp(N, N_x, N_y);
 
-%% prepare for constraints
-fprintf('Preparing for constraints...\n');
+%% Initialization of basic parameters
+fprintf('Intializing basic parameters...\n');
 S_r = 120;           % sensing range in m
 C_r = 120;           % communication range in m
 N_o = 10;            % number of PoIs
@@ -84,8 +84,11 @@ for i = 1:N_o
     O(i, 1) = unifrnd(0, xScalem_target);
     O(i, 2) = unifrnd(0, yScalem_target);
 end
-% location of the sink
-c = [xScalem_target/2, yScalem_target/2];
+% randomly generate the location of the sink
+c = [unifrnd(0, xScalem_target), unifrnd(0, yScalem_target)];
+
+%% Prepare the constraints for the solver
+fprintf('Preparing the constraints...\n');
 % get the distance matrix
 dist = getDist(N, c);
 
@@ -104,10 +107,10 @@ xform.fiB_cnt = N_cnt; xform.fiB_base = 2*N_cnt + N_cnt^2;
 xform.fiB_end = xform.fiB_base + xform.fiB_cnt;
 
 % specify the reliability options and targets
-rel.SoH = true;
+rel.SoH = false;
 rel.SoHref = 0.8;
 rel.T = 3;          % years
-rel.MTTF = true;
+rel.MTTF = false;
 rel.MTTFref = 0.8;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -293,4 +296,5 @@ function plot_solution(N, O, c, sol, xform, S_r, maxlim)
         hold on;
     end
     xlim([0, maxlim(1)]); ylim([0, maxlim(2)]);
+    ax = gca; ax.FontSize = 16;
 end
