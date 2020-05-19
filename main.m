@@ -92,6 +92,9 @@ c = [unifrnd(0, xScalem_target), unifrnd(0, yScalem_target)];
 % get the distance matrix
 dist = getDist(N, c);
 
+% call the amb2core function to load the global variables k_1, k_2, k_3
+Tcorei = amb2core(25, 3);
+
 % options to run which solver/algorithm
 run.cplex = true;
 

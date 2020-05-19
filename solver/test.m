@@ -3,6 +3,10 @@ clc;
 clear;
 close all;
 warning('off','all');
+addpath('./libs');
+
+% call the amb2core function to load the global variables
+Tcorei = amb2core(25, 3);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % test Psoh_bound conversion function
