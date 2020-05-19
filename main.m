@@ -158,6 +158,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
     nodes = vertcat(nodes, c);                % append the sink
     sz_nodes = repmat(40, size(nodes, 1), 1); % const size for nodes
     color_idx = vertcat(sol.x, repmat(2, size(O, 1), 1), 3) + 1;
+    color_idx = round(color_idx);
     color_nodes = vertcat(color_map(color_idx, :));
     figure;
     scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes, 'filled', ...

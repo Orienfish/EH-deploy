@@ -116,7 +116,7 @@ sol.x = x(xform.x_base+1: xform.x_end);
 sol.s = x(xform.s_base+1: xform.s_end);
 sol.fij = x(xform.fij_base+1: xform.fij_end);
 sol.fiB = x(xform.fiB_base+1: xform.fiB_end);
-P0 = 0.01;                  % sleep power (W)
+global P0;
 sol.Pi = Apwr * x + repmat(P0, N_cnt, 1);
 sol.cov = Ac * x;
 

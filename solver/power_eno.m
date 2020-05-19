@@ -19,6 +19,7 @@ N_cnt = xform.x_cnt;         % number of grid locations
 
 
 % constant parameters setting
+global P0;
 P0 = 0.01;                  % sleep power (W)
 Es = 0.2*0.2;               % sensing power (W*s)
 Prx = 0.1;                  % reception power (W)
