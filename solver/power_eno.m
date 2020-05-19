@@ -9,7 +9,7 @@
 %   C_r: the communication radius
 %   rel: the struct of reliability options and targets
 %
-% Reture:
+% Return:
 %   A, b: a N_cnt * v_cnt matrix and a N_cnt * 1 vector for power ENO
 %         constraint A * x <= b
 
