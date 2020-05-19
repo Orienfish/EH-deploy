@@ -15,6 +15,8 @@
 %   sol.cov: coverage of each target
 
 function sol = solver(N, O, dist, params)
+
+addpath('./libs');
 %% Prepare the constraints for the solver
 fprintf('Preparing the constraints...\n');
 
@@ -105,7 +107,7 @@ x0 = zeros(v_cnt, 1);
 %% call the solver
 fprintf('Calling CPLEX...\n');
 options = cplexoptimset;
-options.Display = 'On';
+options.Display = 'Off';
 [x, fval, exitflag, output] = cplexmilp(f, Aineq, bineq, Aeq, beq, ...
     [], [], [], lb, ub, ctype, x0);
 output

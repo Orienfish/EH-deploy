@@ -6,6 +6,7 @@ warning('off','all');
 addpath ('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
 addpath('./lldistkm');
 addpath('./solver');
+addpath('./libs');
 
 %% Initialization of the grid map
 % pre-process solar and temperature data

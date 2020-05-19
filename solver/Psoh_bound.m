@@ -10,9 +10,9 @@
 function P_sohi = Psoh_bound(SoHref, T, Ti)
 % coefficients for temperature conversion
 % Tcore (Kelvin) = k_1 * pwr (W) + k_2 * Tamb (Kelvin) + k_3;
-k_1 = 4.43815458;
-k_2 = 1.41558165;
-k_3 = -111.71901382193846;
+global k_1;
+global k_2;
+global k_3;
 
 % referece temperature (25 Celsius) in Kelvin
 Tref = 25 + 273.15;
