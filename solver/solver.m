@@ -17,8 +17,6 @@
 %   sol.cov: coverage of each target
 
 function sol = solver(N, O, dist, params, rel)
-
-addpath('./libs');
 %% Prepare the constraints for the solver
 fprintf('Preparing the constraints...\n');
 
