@@ -3,7 +3,8 @@
 %   N: struct of the grid locations
 %   O: list of targets to monitor
 %   dist: distance matrix between grid locations and the sink
-%   params: necessary parameters
+%   params: necessary basic parameters
+%   rel: the reliability options and targets
 %
 % Return:
 %   sol.fval: optimal value of the objective function
@@ -14,7 +15,7 @@
 %   sol.Pi: float vector of power in W for each node
 %   sol.cov: coverage of each target
 
-function sol = solver(N, O, dist, params)
+function sol = solver(N, O, dist, params, rel)
 
 addpath('./libs');
 %% Prepare the constraints for the solver
@@ -34,13 +35,6 @@ xform.fij_cnt = N_cnt^2; xform.fij_base = 2*N_cnt;
 xform.fij_end = xform.fij_base + xform.fij_cnt;
 xform.fiB_cnt = N_cnt; xform.fiB_base = 2*N_cnt + N_cnt^2;
 xform.fiB_end = xform.fiB_base + xform.fiB_cnt;
-
-% specify the reliability options and targets
-rel.SoH = false;
-rel.SoHref = 0.8;
-rel.T = 3;          % years
-rel.MTTF = false;
-rel.MTTFref = 0.8;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objective Function f*x

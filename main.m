@@ -95,12 +95,19 @@ dist = getDist(N, c);
 % call the amb2core function to load the global variables k_1, k_2, k_3
 Tcorei = amb2core(25, 3);
 
+% specify the reliability options and targets
+rel.SoH = true;
+rel.SoHref = 0.8;
+rel.T = 5;          % years
+rel.MTTF = true;
+rel.MTTFref = 0.8;
+
 % options to run which solver/algorithm
 run.cplex = true;
 
 %% Call the CPLEX solver
 if run.cplex == true
-    sol = solver(N, O, dist, params);
+    sol = solver(N, O, dist, params, rel);
     % plot the solution
     plot_solution(N, O, c, sol, params.S_r, [xScalem_target, yScalem_target]);
 end

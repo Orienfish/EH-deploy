@@ -61,6 +61,7 @@ if rel.SoH == true
 end
 if rel.MTTF == true
     P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
+    disp(P_mttf);
     b = [b, P_mttf - repmat(P0, N_cnt, 1)];
     b = max(b, 0);
 end
