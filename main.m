@@ -90,6 +90,8 @@ end
 % randomly generate the location of the sink
 c = [unifrnd(0, xScalem_target), unifrnd(0, yScalem_target)];
 % get the distance matrix
+% dist(i, j) denotes the Euclidean distance between grid i and j
+% dist(i, N_cnt+1) denotes the Euclidean distance between i and sink
 dist = getDist(N, c);
 
 % call the amb2core function to load the global variables k_1, k_2, k_3
@@ -103,20 +105,36 @@ rel.MTTF = true;
 rel.MTTFref = 0.8;
 
 % options to run which solver/algorithm
-run.cplex = true;
+run.cplex = false;
+run.tatsh = true;
 
 %% Call the CPLEX solver
-if run.cplex == true
+if run.cplex
     % solve the problem without SoH and MTTF constraints
     rel.SoH = false; rel.MTTF = false;
     sol_wo = solver(N, O, dist, params, rel);
     % plot the solution
-    plot_solution(N, O, c, sol_wo, params.S_r, [xScalem_target, yScalem_target]);
+    if sol_wo.exitflag == 1
+        plot_solution(N, O, c, sol_wo, params.S_r, [xScalem_target, yScalem_target]);
+    end
     % solve the problem with SoH and MTTF constraints
     rel.SoH = true; rel.MTTF = true;
     sol_w = solver(N, O, dist, params, rel);
     % plot the solution
-    plot_solution(N, O, c, sol_w, params.S_r, [xScalem_target, yScalem_target]);
+    if sol_w.exitflag == 1
+        plot_solution(N, O, c, sol_w, params.S_r, [xScalem_target, yScalem_target]);
+    end
+end
+
+%% Call TATSH
+tatshparams.c = c;
+if run.tatsh
+    fprintf('calling TATSH...\n');
+    sol_tatsh = TATSH(N, O, dist, params, tatshparams);
+    % plot the solution
+    if sol_tatsh.exitflag == 1
+        plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem_target, yScalem_target]);
+    end
 end
 
 % end of tutorial
