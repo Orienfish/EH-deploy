@@ -8,11 +8,12 @@
 %
 % Return:
 %   sol.fval: optimal value of the objective function
+%   sol.exitflag: exit flag showing whether the problem is feasible
 %   sol.x: binary vector of optimal node placement
 %   sol.s: binary vector optimal sensor placement
 %   sol.fij: float vector of flows between grid locations
 %   sol.fiB: float vector of flows between grid locations and the sink
-%   sol.Pi: float vector of power in W for each node
+%   sol.Pi: left-hand side and right-hand side of power inequalities
 %   sol.cov: coverage of each target
 
 function sol = solver(N, O, dist, params, rel)
@@ -108,12 +109,12 @@ output
 
 % fill the solution
 sol.fval = fval;
+sol.exitflag = exitflag;
 sol.x = x(xform.x_base+1: xform.x_end);
 sol.s = x(xform.s_base+1: xform.s_end);
 sol.fij = x(xform.fij_base+1: xform.fij_end);
 sol.fiB = x(xform.fiB_base+1: xform.fiB_end);
-global P0;
-sol.Pi = Apwr * x + repmat(P0, N_cnt, 1);
+sol.Pi = [Apwr * x, bpwr];
 sol.cov = Ac * x;
 
 end

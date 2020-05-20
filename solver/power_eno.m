@@ -61,7 +61,6 @@ if rel.SoH == true
 end
 if rel.MTTF == true
     P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
-    disp(P_mttf);
     b = [b, P_mttf - repmat(P0, N_cnt, 1)];
     b = max(b, 0);
 end
@@ -79,7 +78,7 @@ end
 function Ptx = getPtx(dist_m)
 Pto = 0.22;                 % transmission power baseline
 alpha = 3.5;                % distance coefficient
-beta = 1e-8;                % distance coefficient
+beta = 1e-7;                % distance coefficient
 
 Ptx = Pto + beta * dist_m ^ alpha;
 end
