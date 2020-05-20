@@ -1,10 +1,10 @@
-%% Temperature-Aware Two-Stage Heuristic
+%% Two-Stage Heuristic from the directional paper
 % Args:
 %   N: struct of the grid locations
 %   O: list of targets to monitor
 %   dist: distance matrix between grid locations and the sink
 %   params: necessary basic parameters
-%   tatshparams: specific parameters for TATSH
+%   tshparams: specific parameters for TSH
 %
 % Return:
 %   sol.fval: optimal value of the objective function
@@ -14,7 +14,7 @@
 %   sol.fij: float vector of flows between grid locations
 %   sol.fiB: float vector of flows between grid locations and the sink
 
-function sol = TATSH(N, O, dist, params, tatshparams)
+function sol = TSH(N, O, dist, params, tshparams)
 % initialization
 N_cnt = size(N, 1);             % number of grid locations
 N_o = size(O, 1);               % number of targets to monitor
@@ -25,6 +25,10 @@ T = ones(N_o, 1);               % binary vector of uncovered targets
 fij = zeros(N_cnt^2, 1);        % flow matrix between grids
 fiB = zeros(N_cnt, 1);          % flow vector to the sink
 
+% the cost vector of adding a solar panel
+cost = tshparams.w2 * (getPtx(params.C_r) + params.Prx) * params.eta * ...
+    params.G / params.B ./ vertcat(N(:).Ri);
+
 %% stage 1: select sensor nodes
 while sum(T) > 0 % loop continues if there is uncovered target
     % init the weight vector in selecting sensor nodes
@@ -33,7 +37,7 @@ while sum(T) > 0 % loop continues if there is uncovered target
     for i=1:N_cnt
         if s(i) == 0
             O_cover = cover_targets(N(i).position, O, params.S_r);
-            w(i) = sum(O_cover & T) / N(i).Ti;
+            w(i) = sum(O_cover & T);
         end
     end
     % select the sensor with maximum weight in this round
@@ -57,47 +61,25 @@ while sum(T) > 0 % loop continues if there is uncovered target
 end
 x = s;
 
-% calculate the current power Pi for all grid locations
-P_cur = params.P0 + params.Es * params.eta * s;  % list of current power - only sensing
-
 %% stage 2: select relay nodes for the placed sensor one by one
 % create the directed network graph
-G = create_graph(x, P_cur, N, dist, params, tatshparams);
+G = create_graph(x, cost, N, dist, params, tshparams);
 
-% start to choose the shortest path to sink for each sensor in stage 1
-prior = dist(:, N_cnt+1) .* s; % the priority of each placed sensor
-prior(prior == 0) = Inf;       % set the zero item in prior to Inf
-                               % so we can start from the node with min
-                               % prior value
-%disp(prior);
-while true
-    [minval, minidx] = min(prior);
-    if minval == Inf % all sensor nodes in stage 1 has been addressed
-        break
+% find the shortest path from all selected sensors to the sink
+senidx = find(s > 0); % get the indexes of selected sensors
+SP = shortestpathtree(G, senidx, N_cnt+1);
+% extract the [st, ed] nodes pair in the shortest path
+pair = reshape(SP.Edges.EndNodes(:), [], 2);
+for i=1:size(pair, 1)
+    st = pair(i, 1); ed = pair(i, 2);
+    x(st) = 1; % update relay node placement
+    % update flow matrix
+    if ed <= N_cnt % sending to another grid
+        fij_idx = (st-1) * N_cnt + ed;
+        fij(fij_idx) = fij(fij_idx) + params.eta * params.G;
+    else % sending to the sink
+        fiB(st) = fiB(st) + params.eta * params.G;
     end
-    % find the shortest path from minidx to the sink
-    SP = shortestpathtree(G, minidx, N_cnt+1);
-    % extract the [st, ed] nodes pair in the shortest path
-    pair = reshape(SP.Edges.EndNodes(:), [], 2);
-    for i=1:size(pair, 1)
-        st = pair(i, 1); ed = pair(i, 2);
-        x(st) = 1; % update relay node placement
-        % increased transmission power due to placing relay node at i or j
-        P_inc = (getPtx(dist(st, ed)) + params.Prx) * params.eta * ...
-            params.G / params.B;
-        % update current power P_cur
-        P_cur(st) = P_cur(st) + P_inc;
-        % update flow matrix
-        if ed <= N_cnt % sending to another grid
-            fij_idx = (st-1) * N_cnt + ed;
-            fij(fij_idx) = fij(fij_idx) + params.eta * params.G;
-        else % sending to the sink
-            fiB(st) = fiB(st) + params.eta * params.G;
-        end
-    end
-    % create the new graph with the above changes
-    G = create_graph(x, P_cur, N, dist, params, tatshparams);
-    prior(minidx) = Inf;
 end
 
 %% update the solution value
@@ -131,16 +113,16 @@ end
 %% create the network graph
 % Args:
 %   x: binary vector of current node placement
-%   P_cur: vector of current power at each node
+%   cost: cost vector of adding a solar panel
 %   N: struct of the grid locations
 %   dist: distance matrix between grid locations and the sink
 %   params: necessary basic parameters
-%   tatshparams: specific parameters for TATSH
+%   tshparams: specific parameters for TSH
 %
 % Return:
 %   G: the graph for finding shortest path
 
-function G = create_graph(x, P_cur, N, dist, params, tatshparams)
+function G = create_graph(x, cost, N, dist, params, tshparams)
 N_cnt = size(N, 1);
 st = [];
 ed = [];
@@ -150,24 +132,17 @@ for i=1:N_cnt
         if dist(i, j) <= params.C_r
             % if connectable, add pair [i, j] and [j, i] to [st, ed]
             st = [st, i, j]; ed = [ed, j, i];
-            % increased transmission power due to placing relay node at i or j
-            P_inc = (getPtx(dist(i, j)) + params.Prx) * params.eta * ...
-                params.G / params.B;
-            weight_ij = tatshparams.w1 * (x(i) == 0) + ...
-                tatshparams.w2 * (1/max(1e-10, (N(i).Ri - P_cur(i) - P_inc)));
-            weight_ji = tatshparams.w1 * (x(j) == 0) + ...
-                tatshparams.w2 * (1/max(1e-10, (N(j).Ri - P_cur(j) - P_inc)));
+            % update weight from i to j and from j to i
+            weight_ij = tshparams.w1 * (x(i) == 0) + tshparams.w2 * cost(i);
+            weight_ji = tshparams.w1 * (x(j) == 0) + tshparams.w2 * cost(j);
             weights = [weights, weight_ij, weight_ji];
         end
     end
     if dist(i, N_cnt+1) <= params.C_r
         % if connectable, add pair [i, sink] to [st, ed]
         st = [st, i]; ed = [ed, N_cnt+1];
-        % increased transmission power due to placing relay node at i
-        P_inc = (getPtx(dist(i, N_cnt+1)) + params.Prx) * params.eta * ...
-            params.G / params.B;
-        weight_iB = tatshparams.w1 * (x(i) == 1) + ...
-            tatshparams.w2 * (1/max(1e-10, (N(i).Ri - P_cur(i) - P_inc)));
+        % update weight from i to sink
+        weight_iB = tshparams.w1 * (x(i) == 1) + tshparams.w2 * cost(i);
         weights = [weights, weight_iB];
     end
 end

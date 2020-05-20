@@ -29,20 +29,20 @@ yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT
 xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
 
 % set the size and granularity of the grid space 
-xScalem_target = 1000;    % m
-yScalem_target = 1000;    % m
+xScalem = 1000;    % m
+yScalem = 1000;    % m
 N_x = 10;
 N_y = 10;
 N_cnt = N_x * N_y;      % number of grid points
-Unit_x = floor(xScalem_target / (N_x - 1));
-Unit_y = floor(yScalem_target / (N_y - 1));
+Unit_x = floor(xScalem / (N_x - 1));
+Unit_y = floor(yScalem / (N_y - 1));
 A = 0.01;               % surface area (m^2) of solar panel
 xi = 0.05;              % end-to-end conversion efficiency of solar system
 
 % the factor to transform from grid (m) to lat and lon
 % x - longitude, y - latitude
-x_transform = (max(dataT.lon) - min(dataT.lon)) / xScalem_target;
-y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem_target;
+x_transform = (max(dataT.lon) - min(dataT.lon)) / xScalem;
+y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem;
 
 % generate the grid candidate set N 
 % with their x, y coordinates and temperature and DNI
@@ -87,11 +87,11 @@ params.Prx = 0.1;                  % reception power (W)
 % randomly generate PoIs to monitor
 O = repmat([], params.N_o, 2);
 for i = 1:params.N_o
-    O(i, 1) = unifrnd(0, xScalem_target);
-    O(i, 2) = unifrnd(0, yScalem_target);
+    O(i, 1) = unifrnd(0, xScalem);
+    O(i, 2) = unifrnd(0, yScalem);
 end
 % randomly generate the location of the sink
-c = [unifrnd(0, xScalem_target), unifrnd(0, yScalem_target)];
+c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
 % get the distance matrix
 % dist(i, j) denotes the Euclidean distance between grid i and j
 % dist(i, N_cnt+1) denotes the Euclidean distance between i and sink
@@ -107,37 +107,51 @@ rel.T = 5;          % years
 rel.MTTF = true;
 rel.MTTFref = 0.8;
 
+%% Call solvers
 % options to run which solver/algorithm
-run.cplex = false;
+run.cplex = true;
 run.tatsh = true;
+run.tsh = true;
 
-%% Call the CPLEX solver
+% Call the CPLEX solver
 if run.cplex
     % solve the problem without SoH and MTTF constraints
     rel.SoH = false; rel.MTTF = false;
     sol_wo = solver(N, O, dist, params, rel);
     % plot the solution
     if sol_wo.exitflag == 1
-        plot_solution(N, O, c, sol_wo, params.S_r, [xScalem_target, yScalem_target]);
+        plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
     end
     % solve the problem with SoH and MTTF constraints
     rel.SoH = true; rel.MTTF = true;
     sol_w = solver(N, O, dist, params, rel);
     % plot the solution
     if sol_w.exitflag == 1
-        plot_solution(N, O, c, sol_w, params.S_r, [xScalem_target, yScalem_target]);
+        plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
     end
 end
 
-%% Call TATSH
+% Call TATSH
 tatshparams.w1 = 1;     % weight for placing new node
-tatshparams.w2 = 0.1;    % weight for remained power budget
+tatshparams.w2 = 0.05;  % weight for remained power budget
 if run.tatsh
     fprintf('calling TATSH...\n');
     sol_tatsh = TATSH(N, O, dist, params, tatshparams);
     % plot the solution
     if sol_tatsh.exitflag == 1
-        plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem_target, yScalem_target]);
+        plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem, yScalem]);
+    end
+end
+
+% Call TSH
+tshparams.w1 = 500;     % cost for adding a new node
+tshparams.w2 = 800;     % cost for adding per area of solar panel
+if run.tatsh
+    fprintf('calling TSH...\n');
+    sol_tsh = TSH(N, O, dist, params, tatshparams);
+    % plot the solution
+    if sol_tsh.exitflag == 1
+        plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
     end
 end
 
