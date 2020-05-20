@@ -72,8 +72,7 @@ bxs = zeros(N_cnt, 1);
 % sigma_j fij <= maxf * xi
 [Abound, bbound] = flow_bound(v_cnt, xform, dist, params.C_r, params.maxf);
 % power inequality
-[Apwr, bpwr] = power_eno(params.eta, params.B, v_cnt, xform, N, dist, ...
-    params.C_r, rel);
+[Apwr, bpwr] = power_eno(v_cnt, xform, N, dist, params, rel);
 % stack all inequality constraints
 Aineq = [Ac; Axs; Abound; Apwr];
 bineq = [bc; bxs; bbound; bpwr];
