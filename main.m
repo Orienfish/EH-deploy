@@ -127,7 +127,8 @@ if run.cplex
 end
 
 %% Call TATSH
-tatshparams.c = c;
+tatshparams.w1 = 1;     % weight for placing new node
+tatshparams.w2 = 10;    % weight for remained power budget
 if run.tatsh
     fprintf('calling TATSH...\n');
     sol_tatsh = TATSH(N, O, dist, params, tatshparams);
