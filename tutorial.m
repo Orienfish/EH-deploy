@@ -109,9 +109,10 @@ rel.MTTFref = 0.8;
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = true;
+run.cplex = false;
 run.tatsh = true;
 run.tsh = true;
+run.srigh = true;
 
 % Call the CPLEX solver
 if run.cplex
@@ -152,7 +153,7 @@ end
 % Call TSH
 tshparams.w1 = 500;     % cost for adding a new node
 tshparams.w2 = 800;     % cost for adding per area of solar panel
-if run.tatsh
+if run.tsh
     fprintf('calling TSH...\n');
     sol_tsh = TSH(N, O, dist, params, tatshparams);
     % plot the solution
@@ -160,6 +161,29 @@ if run.tatsh
         plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
         sol_tsh.vio = rel_violation(sol_tsh, N, dist, params, rel);
         fprintf('Violation of sol_tsh: %f\n', sol_tsh.vio);
+    end
+end
+
+% Call SRIGH
+if run.srigh
+    fprintf('calling SRIGH...\n');
+    % prepare for calling srigh
+    Cparams = params;
+    Cparams.N = params.N_o;
+    Cparams.M = N_cnt;
+    Cparams.dist = dist;
+    
+    sparams.w1 = 500;     % cost for adding a new node
+    sparams.w2 = 800;     % cost for adding per area of solar panel
+    sparams.A = A;
+    sparams.O = N;
+    sparams.T = O;
+    res_srigh = srigh(Cparams, sparams);
+    if res_srigh.exitflag == 1
+        plot_solution(N, O, c, res_srigh, params.S_r, [xScalem, yScalem]);
+        res_srigh.vio = rel_violation(res_srigh, N, dist, params, rel);
+        fprintf('Violation of res_srigh: %f\n', res_srigh.vio);
+        fprintf('nodes used: %d\n', res_srigh.fval);
     end
 end
 
