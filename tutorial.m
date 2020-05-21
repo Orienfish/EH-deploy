@@ -13,12 +13,17 @@ addpath('./libs');
 fprintf('start pre-processing...\n');
 folder = './solardata/';
 f_list = dir(append(folder, '*.csv'));
-dataT_sav = append(folder, 'dataT.csv');
-if exist(dataT_sav, 'file')
-    dataT = readtable(dataT_sav);
+dataT_sav = {append(folder, 'dataT.csv'), append(folder, 'Counts.csv'), ...
+    append(folder, 'Centers.csv')}; % all processing data
+dataT_sav = string(dataT_sav);
+N_bin = 20;        % number of bins
+if exist(dataT_sav(1), 'file')
+    dataT = readtable(dataT_sav(1));
+    Counts = readmatrix(dataT_sav(2));
+    Centers = readmatrix(dataT_sav(3));
 else
     % if no file exists yet, do pre-process and save it to file
-    dataT = preprocess(f_list, dataT_sav);
+    [dataT, Counts, Centers] = preprocess(f_list, dataT_sav, N_bin);
 end
 
 % get data source distribution
@@ -65,7 +70,7 @@ for j = 0:N_y-1
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature in Celsius
         %N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
-        N(i + j * N_x + 1).Ti = 25 + (40 - 35) * j / N_y;
+        N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
     end
 end
 % plot the heatmap of temperature distribution in the grid map
@@ -105,13 +110,13 @@ rel.SoH = true;
 rel.SoHref = 0.8;
 rel.T = 5;          % years
 rel.MTTF = true;
-rel.MTTFref = 0.8;
+rel.MTTFref = 0.7;
 
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = false;
-run.tatsh = true;
-run.tsh = true;
+run.tatsh = false;
+run.tsh = false;
 run.srigh = true;
 
 % Call the CPLEX solver
