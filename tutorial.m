@@ -13,12 +13,17 @@ addpath('./libs');
 fprintf('start pre-processing...\n');
 folder = './solardata/';
 f_list = dir(append(folder, '*.csv'));
-dataT_sav = append(folder, 'dataT.csv');
-if exist(dataT_sav, 'file')
-    dataT = readtable(dataT_sav);
+dataT_sav = {append(folder, 'dataT.csv'), append(folder, 'Counts.csv'), ...
+    append(folder, 'Centers.csv')}; % all processing data
+dataT_sav = string(dataT_sav);
+N_bin = 20;        % number of bins
+if exist(dataT_sav(1), 'file')
+    dataT = readtable(dataT_sav(1));
+    Counts = readmatrix(dataT_sav(2));
+    Centers = readmatrix(dataT_sav(3));
 else
     % if no file exists yet, do pre-process and save it to file
-    dataT = preprocess(f_list, dataT_sav);
+    [dataT, Counts, Centers] = preprocess(f_list, dataT_sav, N_bin);
 end
 
 % get data source distribution
@@ -28,7 +33,7 @@ origin = [min(dataT.lat), min(dataT.lon)];
 yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT.lon)]);
 xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
 
-% set the size and granularity of the grid space 
+% set the size and granularity of the grid space
 xScalem = 1000;    % m
 yScalem = 1000;    % m
 N_x = 10;
@@ -44,7 +49,7 @@ xi = 0.05;              % end-to-end conversion efficiency of solar system
 x_transform = (max(dataT.lon) - min(dataT.lon)) / xScalem;
 y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem;
 
-% generate the grid candidate set N 
+% generate the grid candidate set N
 % with their x, y coordinates and temperature and DNI
 empty_point.position = [];
 empty_point.Ri = [];
@@ -65,7 +70,7 @@ for j = 0:N_y-1
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature in Celsius
         %N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
-        N(i + j * N_x + 1).Ti = 25 + (40 - 35) * j / N_y;
+        N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
     end
 end
 % plot the heatmap of temperature distribution in the grid map
@@ -105,14 +110,13 @@ rel.SoH = true;
 rel.SoHref = 0.8;
 rel.T = 5;          % years
 rel.MTTF = true;
-rel.MTTFref = 0.8;
+rel.MTTFref = 0.7;
 
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = false;
-run.tatsh = true;
-run.tsh = true;
-run.srigh = true;
+run.tatsh = false;
+run.tsh = false;
 
 % Call the CPLEX solver
 if run.cplex
@@ -172,7 +176,7 @@ if run.srigh
     Cparams.N = params.N_o;
     Cparams.M = N_cnt;
     Cparams.dist = dist;
-    
+
     sparams.w1 = 500;     % cost for adding a new node
     sparams.w2 = 800;     % cost for adding per area of solar panel
     sparams.A = A;
@@ -257,7 +261,7 @@ end
 function plot_solution(N, O, c, sol, S_r, maxlim)
     % intialization
     N_cnt = size(N, 1);  % number of grid locations
-    
+
     % scatter
     color_map = [[0 0.4470 0.7410]; ...       % blue
         [0.8500 0.3250 0.0980]; ...           % orange
@@ -274,7 +278,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
     scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes, 'filled', ...
         'LineWidth', 2);
     hold on;
-    
+
     % plot the coverage circle
     cplot = @(r, x0, y0) plot(x0 + r * cos(linspace(0, 2*pi)), ...
         y0 + r * sin(linspace(0, 2*pi)),'r-', 'LineWidth', 2);
@@ -284,7 +288,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
             axis equal; hold on;
         end
     end
-    
+
     % plot the line segment representing flows
     ls = [];             % list of line segments
     for i = 1:N_cnt
