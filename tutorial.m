@@ -242,6 +242,7 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
     % get the power at all grid locations
     pwr = getPwr(sol, N, dist, params);
     disp('pwr'); disp(pwr');
+    
     % calculate core temperature
     Tc = zeros(N_cnt, 1);
     for i = 1:N_cnt

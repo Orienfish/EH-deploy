@@ -23,12 +23,12 @@ for i = 1:N_cnt
             continue;
         end
         fij_idx = (i-1) * N_cnt + j;
-        if sol.fij > 0
+        if sol.fij(fij_idx) > 0
             % add transmission power to node i
             Pcomm(i) = Pcomm(i) + getPtx(dist(i, j)) * sol.fij(fij_idx) / ...
                 params.B;
             % add reception power to node j
-            Pcomm(j) = params.Prx * sol.fij(fij_idx) / params.B;
+            Pcomm(j) = Pcomm(j) + params.Prx * sol.fij(fij_idx) / params.B;
         end
     end
     if sol.fiB(i) > 0
