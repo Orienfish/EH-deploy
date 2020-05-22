@@ -241,6 +241,7 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
     N_cnt = size(N, 1);
     % get the power at all grid locations
     pwr = getPwr(sol, N, dist, params);
+    disp('pwr'); disp(pwr');
     % calculate core temperature
     Tc = zeros(N_cnt, 1);
     for i = 1:N_cnt
@@ -251,11 +252,11 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
         end
     end
     % calculate minimal SoH of all deployed devices
-    SoH = soh(Tc, rel.T); disp(SoH');
+    SoH = soh(Tc, rel.T); %disp('SoH'); disp(SoH');
     sohmin = zeros(1, 2);
     [sohmin(1), sohmin(2)] = min(SoH);
     % calculate minimal MTTF of all deployed devices
-    MTTF = mttf(Tc); disp(MTTF');
+    MTTF = mttf(Tc); %disp('MTTF'); disp(MTTF');
     mttfmin = zeros(1, 2);
     [mttfmin(1), mttfmin(2)] = min(MTTF);
     % combine all power bounds from N
