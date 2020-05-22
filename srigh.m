@@ -26,20 +26,23 @@ function [res] = srigh(Cparams, sparams)
 
 s = zeros(Cparams.M, 1);            % binary vector of sensor placement
 x = zeros(Cparams.M, 1);            % binary vector of node placement
-q = repmat(Cparams.K, Cparams.N, 1);   % coverage requirement of each target
+q = repmat(Cparams.K, Cparams.N, 1);  % coverage requirement of each target
 fij = zeros((Cparams.M)^2, 1);        % flow matrix between grids
 fiB = zeros(Cparams.M, 1);          % flow vector to the sink
 U = [];               % set of sites that a sensor has already been placed
+                      % U is the indices of (x==1)
 eff_s = get_efficient_sensors(sparams.O, sparams.T, Cparams.S_r);
-gamma = eff_s;
+gamma = eff_s;   % set of sensors that could cover some targets
 
 % T' <- {1, 2, ..., N}
+% set of targets that covering requirements haven't been fulfilled
 T_prime = ones(1, Cparams.N);
 for i = 1:Cparams.N
     T_prime(i) = i;
 end
 
 % qi' <- qi
+% targets with their unfulfilled covering requirements
 qi_prime = q;
 
 % omega_ik <- binary matrix storing whether the sensor in row i could
@@ -55,10 +58,11 @@ end
 cost = sparams.w2 * (getPtx(Cparams.C_r) + Cparams.Prx) * Cparams.eta * ...
     Cparams.G / Cparams.B ./ vertcat(sparams.O(:).Ri);
 
+% create the graph
 G = create_graph(cost, sparams.O, Cparams.dist, Cparams.C_r, ...
         sparams.w1, sparams.w2);
     
-plot(G,'EdgeLabel',G.Edges.Weight)
+% plot(G,'EdgeLabel',G.Edges.Weight)
 % begin selection process
 while size(T_prime, 1) ~= 0
     % check whether to exit loop
@@ -75,10 +79,10 @@ while size(T_prime, 1) ~= 0
     
     %% stage 1: selecting a target
     % h <- argmin(j in T') {(sum ((i in gamma) {?i, j}))/qj }
-    minj = 1;
-    minval = Inf;
+    minj = 1; % index of target with min rho_i/q'_i
+    minval = Inf; % rho_i/q'_i of that target
     for j = 1:size(T_prime, 2)
-        target = T_prime(j);
+        target = T_prime(j); % index of current target
         num_sensors = 0;
         % sum (i in gamma) {omega(i, target)}
         for i = 1:Cparams.M
@@ -86,7 +90,9 @@ while size(T_prime, 1) ~= 0
                 num_sensors = num_sensors + o_cover(i, target);
             end
         end
+        % rho_i/q'_i of current target
         temp = num_sensors / qi_prime(target);
+        % update target
         if temp < minval
             minval = temp;
             minj = target;
@@ -121,23 +127,24 @@ while size(T_prime, 1) ~= 0
         
         % g <- |Ti ? T?|/(?i + cost(i))
         % first calculate numerator
+        % Ti: set of targets that could be covered by current sensor
         targets = o_cover(sensor, :);
-        T_i = [];
-        for j = 1:size(targets,2)
-            if(targets(j) == 1)
-                T_i  = [T_i j];
-            end
-        end
+        T_i = get_targets(targets);
         intersection = intersect(T_i, T_prime);
         numerator = size(intersection, 2);
 
         % then calculate denominator
         denominator = d + cost(sensor);
-        if ~ismember(sensor, U)
+        % If i (current sensor) is a member of U, then don't need to add
+        % omega1 when calculating the cost.
+        if ismember(sensor, U)
             denominator = denominator - sparams.w1;
         end
         
+        % calculate benefit
         g = numerator / denominator;
+        % update best benefit, sensor with best benefit, and thae
+        % corresponding path
         if g > g_s
             g_s = g;
             i_s = sensor;
@@ -147,20 +154,20 @@ while size(T_prime, 1) ~= 0
     
     %% stage 3: update target set and undeployed sensor set(gamma)
     % build the set of targets who could be covered by the selected sensor
+    % targets: binary vector, 1 if the target could be covered, 0 if not
     targets = o_cover(i_s, :);
-    T_is = [];
-    for j = 1:size(targets, 2)
-        if(targets(j) == 1)
-            T_is  = [T_is j];
-        end
-    end
+    % T_is: set of targets that could be covered by the selected sensor
+    T_is = get_targets(targets);
     intersection = intersect(T_is, T_prime);
-    % begin the update process
+    
+    % update the unfulfilled target set
     for i = 1:size(intersection, 2)
         target = intersection(i);
+        % decrement the coverage requirement
         qi_prime(target) = qi_prime(target) - 1;
         
-        % update T_prime
+        % update T_prime (set of unfulfilled targets) if the coverage
+        % requirement has been fulfilled
         if qi_prime(target) <= 0
             T_prime = T_prime(T_prime ~= target);
         end
@@ -169,25 +176,35 @@ while size(T_prime, 1) ~= 0
     % update undeployed sensor set
     gamma = gamma(gamma ~= i_s);
     
+    % update selected sensor/node sets
     s(i_s) = 1;
     x(i_s) = 1;
     %% stage 4: update the graph
     edges = G.Edges.EndNodes; % M by 2 matrices
-    endpoints = edges(:, 2); % get the second column
-    for i = 1:(size(P_s,2)-1)
+    endpoints = edges(:, 2); % get the second column, the endpoints
+    
+    % P_s contains the sequence of nodes
+    % traversing from 1st to second last nodes in P_s
+    % (O_i -> O_j) == arc <O_i, O_j>
+    for i = 1:(size(P_s, 2)-1)
         O_i = P_s(i);
         O_j = P_s(i + 1);
+        % add the node into the selected node set
         x(O_i) = 1;
         
-        % add the newly-selected node in Fij
+        % add the newly-selected node in Fij/FiB
+        % if the endpoint is the sink, add to fiB
         if O_j == Cparams.M+1
             fiB(O_i) = fiB(O_i) + Cparams.eta * Cparams.G;
+        % if the endpoint is a normal node, add to fij
         else
             fij_idx = (O_i - 1) * Cparams.M + O_j;
             fij(fij_idx) = fij(fij_idx) + Cparams.eta * Cparams.G;
         end
         
         % if i notin U
+        % if i is not in the "selected node" set, then need to add it in
+        % and update the graph weight
         if ~ismember(O_i, U)
             U = [U O_i];
             
@@ -195,8 +212,12 @@ while size(T_prime, 1) ~= 0
             for i = 1:size(endpoints, 1)
                 % endpoint is O_i
                 if (endpoints(i) == O_i)
+                    % get the start point
+                    % arc: <startpoint, O_i>
                     startpoint = edges(i, 1);
                     weight = sparams.w2 + cost(O_i);
+                    
+                    % update the edge
                     G = rmedge(G, startpoint, O_i);
                     G = addedge(G, startpoint, O_i, weight);
                 end
@@ -222,9 +243,12 @@ end
 %        could cover some targets
 function eff_s = get_efficient_sensors(O, T, S_r)
     eff_s = [];
+    % for each sensor, traverse each target and get the distance between
+    % the two
     for i = 1:size(O,1)
         for j = 1:size(T,1)
-            d = norm(O(i).position - T(j, :));
+            d = norm(O(i).position - T(j, :));  % get the distance
+            % update eff_s if needed
             if d <= S_r
                 eff_s = [eff_s i];
                 break
@@ -290,4 +314,17 @@ for j=1:N_o
         O_cover(j) = 1;
     end
 end
+end
+
+%% get the set of targets that could be covered by the sensor
+% targets: the binary vector from matrix o_cover containing information of
+% whether the target could be covered by the corresponding sensor
+function T_i = get_targets(targets)
+    T_i = [];
+    % traverse the target set
+    for j = 1:size(targets,2)
+        if(targets(j) == 1)
+            T_i  = [T_i j];
+        end
+    end
 end

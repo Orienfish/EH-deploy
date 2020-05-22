@@ -115,8 +115,8 @@ rel.MTTFref = 0.7;
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = false;
-run.tatsh = false;
-run.tsh = false;
+run.tatsh = true;
+run.tsh = true;
 run.srigh = true;
 
 % Call the CPLEX solver
@@ -188,7 +188,6 @@ if run.srigh
         plot_solution(N, O, c, res_srigh, params.S_r, [xScalem, yScalem]);
         res_srigh.vio = rel_violation(res_srigh, N, dist, params, rel);
         fprintf('Violation of res_srigh: %f\n', res_srigh.vio);
-        fprintf('nodes used: %d\n', res_srigh.fval);
     end
 end
 
