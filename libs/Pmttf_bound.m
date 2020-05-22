@@ -8,11 +8,11 @@
 %   P_mttfi: list of expected upper bound for average power to satisfy MTTF
 %            under the current temperature distribution
 
-function P_mttfi = Pmttf_bound(rel, N)
+function P_mttfi = Pmttf_bound(rel, N, Centers)
 % initialization
 N_cnt = size(N, 1);         % number of grid locations
 P_mttfi = zeros(N_cnt, 1);  % power bounds imposed by SoH
-N_bin = size(N.Centers, 2); % number of temperature bins
+N_bin = size(Centers, 2); % number of temperature bins
 eps = 1e-4;                 % acceptable precision of the output power bound
 % start the binary search
 for i = 1:N_cnt

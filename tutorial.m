@@ -116,11 +116,11 @@ rel.MTTFref = 0.75;
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri);                  % power constraints (W)
 if rel.SoH == true
-    P_soh = Psoh_bound(rel, N);
+    P_soh = Psoh_bound(rel, N, Centers);
     Pi = [Pi, P_soh - repmat(params.P0, N_cnt, 1)];
 end
 if rel.MTTF == true
-    P_mttf = Pmttf_bound(rel, N);
+    P_mttf = Pmttf_bound(rel, N, Centers);
     Pi = [Pi, P_mttf - repmat(params.P0, N_cnt, 1)];
 end
 disp(Pi);
@@ -132,8 +132,8 @@ end
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = false;
-run.tatsh = false;
-run.tsh = false;
+run.tatsh = true;
+run.tsh = true;
 run.srigh = true;
 
 % Call the CPLEX solver
@@ -219,7 +219,11 @@ if run.srigh
     res_srigh = srigh(Cparams, sparams);
     if res_srigh.exitflag == 1
         plot_solution(N, O, c, res_srigh, params.S_r, [xScalem, yScalem]);
-        res_srigh.vio = rel_violation(res_srigh, N, dist, params, rel);
+        [res_srigh.sohmin, res_srigh.mttfmin, res_srigh.vio] = ...
+            rel_check(res_srigh, N, dist, params, rel);
+        fprintf('# of nodes of res_srigh: %d\n', res_srigh.fval);
+        fprintf('Min SoH: %f Node: %d\n', res_srigh.sohmin(1), res_srigh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', res_srigh.mttfmin(1), res_srigh.mttfmin(2));
         fprintf('Violation of res_srigh: %f\n', res_srigh.vio);
     end
 end
