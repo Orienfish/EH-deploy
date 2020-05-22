@@ -44,19 +44,12 @@ for i = 1:N_cnt
 end
 %fprintf('power eno:\n');
 %disp(A);
-b = vertcat(N(:).Ri) - repmat(params.P0, N_cnt, 1);
-if rel.SoH == true
-    P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
-    b = [b, P_soh - repmat(params.P0, N_cnt, 1)];
-    b = max(b, 0);
+if rel.SoH && rel.MTTF        % conside reliability constraints
+    b = vertcat(N(:).Pi) - repmat(params.P0, N_cnt, 1);
+else                          % only energy neutral operation constraint
+    b = vertcat(N(:).Ri) - repmat(params.P0, N_cnt, 1);
 end
-if rel.MTTF == true
-    P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
-    b = [b, P_mttf - repmat(params.P0, N_cnt, 1)];
-    b = max(b, 0);
-end
-disp(b);
-b = min(b, [], 2); % get the column vector of min of each row
+%disp(b);
 end
 
 

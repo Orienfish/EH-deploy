@@ -104,17 +104,34 @@ dist = getDist(N, c);
 
 % call the amb2core function to load the global variables k_1, k_2, k_3
 Tcorei = amb2core(25, 3);
-
 % specify the reliability options and targets
 rel.SoH = true;
 rel.SoHref = 0.8;
-rel.T = 5;          % years
+rel.T = 5;                              % years
 rel.MTTF = true;
-rel.MTTFref = 0.7;
+rel.MTTFref = 0.75;
+
+% convert the reliability constraints to power constraints
+Pi = vertcat(N(:).Ri);                  % power constraints (W)
+if rel.SoH == true
+    P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
+    Pi = [Pi, P_soh - repmat(params.P0, N_cnt, 1)];
+    Pi = max(Pi, 0);
+end
+if rel.MTTF == true
+    P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
+    Pi = [Pi, P_mttf - repmat(params.P0, N_cnt, 1)];
+    Pi = max(Pi, 0);
+end
+disp(Pi);
+Pi = min(Pi, [], 2); % get the column vector of min of each row
+for i = 1:N_cnt
+    N(i).Pi = Pi(i); % clip the power constraints to grid struct
+end
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = false;
+run.cplex = true;
 run.tatsh = false;
 run.tsh = false;
 
