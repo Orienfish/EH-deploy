@@ -25,12 +25,31 @@ title('Core temperature (Celsius) at various temperature');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % test MTTF under various core temperature
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-n_mttftemp = 41;
-Tc = linspace(0, 40, n_mttftemp); % core temperature in Celsius
-MTTF = zeros(1, n_mttftemp);
-for i = 1:n_mttftemp
+n_temp = 51;
+Tc = linspace(0, 50, n_temp); % core temperature in Celsius
+MTTF = zeros(1, n_temp);
+for i = 1:n_temp
     MTTF(i) = mttf(Tc(i) + 273.15); % convert to Kelvin
 end
 figure;
 plot(Tc, MTTF);
 title('MTTF ratio under various core temperature');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% test SoH under various core temperature and target time
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% use the same core temperature setting as the last test
+n_time = 10;
+T = linspace(1, 5, n_time);
+SoH = zeros(n_time, n_temp);
+for i = 1:n_temp
+    for j = 1:n_time
+        SoH(j, i) = soh(Tc(i) + 273.15, T(j)); % convert to Kelvin
+    end
+end
+figure;
+for j = 1:n_time
+    plot(Tc, SoH);
+    hold on;
+end
+title('Battery SoH under various core temperature and target time');
