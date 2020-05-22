@@ -132,8 +132,8 @@ end
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = true;
-run.tatsh = false;
-run.tsh = false;
+run.tatsh = true;
+run.tsh = true;
 
 % Call the CPLEX solver
 if run.cplex
@@ -145,6 +145,7 @@ if run.cplex
         plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
         [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
             rel_check(sol_wo, N, dist, params, rel);
+        fprintf('# of nodes of sol_wo: %d\n', sol_wo.fval);
         fprintf('Min SoH: %f Node: %d\n', sol_wo.sohmin(1), sol_wo.sohmin(2));
         fprintf('Min MTTF: %f Node: %d\n', sol_wo.mttfmin(1), sol_wo.mttfmin(2));
         fprintf('Violation of sol_wo: %f\n', sol_wo.vio);
@@ -157,9 +158,10 @@ if run.cplex
         plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
         [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
             rel_check(sol_w, N, dist, params, rel);
+        fprintf('# of nodes of sol_w: %d\n', sol_w.fval);
         fprintf('Min SoH: %f Node: %d\n', sol_w.sohmin(1), sol_w.sohmin(2));
         fprintf('Min MTTF: %f Node: %d\n', sol_w.mttfmin(1), sol_w.mttfmin(2));
-        fprintf('Violation of sol_wo: %f\n', sol_w.vio);
+        fprintf('Violation of sol_w: %f\n', sol_w.vio);
     end
 end
 
@@ -174,9 +176,10 @@ if run.tatsh
         plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem, yScalem]);
         [sol_tatsh.sohmin, sol_tatsh.mttfmin, sol_tatsh.vio] = ...
             rel_check(sol_tatsh, N, dist, params, rel);
+        fprintf('# of nodes of sol_tatsh: %d\n', sol_tatsh.fval);
         fprintf('Min SoH: %f Node: %d\n', sol_tatsh.sohmin(1), sol_tatsh.sohmin(2));
         fprintf('Min MTTF: %f Node: %d\n', sol_tatsh.mttfmin(1), sol_tatsh.mttfmin(2));
-        fprintf('Violation of sol_wo: %f\n', sol_tatsh.vio);
+        fprintf('Violation of sol_tatsh: %f\n', sol_tatsh.vio);
     end
 end
 
@@ -191,9 +194,10 @@ if run.tatsh
         plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
         [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
             rel_check(sol_tsh, N, dist, params, rel);
+        fprintf('# of nodes of sol_tsh: %d\n', sol_tsh.fval);
         fprintf('Min SoH: %f Node: %d\n', sol_tsh.sohmin(1), sol_tsh.sohmin(2));
         fprintf('Min MTTF: %f Node: %d\n', sol_tsh.mttfmin(1), sol_tsh.mttfmin(2));
-        fprintf('Violation of sol_wo: %f\n', sol_tsh.vio);
+        fprintf('Violation of sol_tsh: %f\n', sol_tsh.vio);
     end
 end
 
@@ -241,8 +245,6 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
     N_cnt = size(N, 1);
     % get the power at all grid locations
     pwr = getPwr(sol, N, dist, params);
-    disp('pwr'); disp(pwr');
-    
     % calculate core temperature
     Tc = zeros(N_cnt, 1);
     for i = 1:N_cnt
@@ -253,11 +255,11 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
         end
     end
     % calculate minimal SoH of all deployed devices
-    SoH = soh(Tc, rel.T); %disp('SoH'); disp(SoH');
+    SoH = soh(Tc, rel.T);
     sohmin = zeros(1, 2);
     [sohmin(1), sohmin(2)] = min(SoH);
     % calculate minimal MTTF of all deployed devices
-    MTTF = mttf(Tc); %disp('MTTF'); disp(MTTF');
+    MTTF = mttf(Tc);
     mttfmin = zeros(1, 2);
     [mttfmin(1), mttfmin(2)] = min(MTTF);
     % combine all power bounds from N
