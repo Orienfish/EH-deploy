@@ -115,8 +115,8 @@ rel.MTTFref = 0.7;
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = false;
-run.tatsh = true;
-run.tsh = true;
+run.tatsh = false;
+run.tsh = false;
 run.srigh = true;
 
 % Call the CPLEX solver
