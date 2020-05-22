@@ -28,9 +28,7 @@ title('Core temperature (Celsius) at various temperature');
 n_temp = 51;
 Tc = linspace(0, 50, n_temp); % core temperature in Celsius
 MTTF = zeros(1, n_temp);
-for i = 1:n_temp
-    MTTF(i) = mttf(Tc(i) + 273.15); % convert to Kelvin
-end
+MTTF(:) = mttf(Tc + 273.15); % convert to Kelvin
 figure;
 plot(Tc, MTTF);
 title('MTTF ratio under various core temperature');
@@ -42,10 +40,8 @@ title('MTTF ratio under various core temperature');
 n_time = 10;
 T = linspace(1, 5, n_time);
 SoH = zeros(n_time, n_temp);
-for i = 1:n_temp
-    for j = 1:n_time
-        SoH(j, i) = soh(Tc(i) + 273.15, T(j)); % convert to Kelvin
-    end
+for j = 1:n_time
+    SoH(j, :) = soh(Tc + 273.15, T(j)); % convert to Kelvin
 end
 figure;
 for j = 1:n_time

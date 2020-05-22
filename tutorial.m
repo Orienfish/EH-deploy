@@ -143,7 +143,10 @@ if run.cplex
     % plot the solution
     if sol_wo.exitflag == 1
         plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
-        sol_wo.vio = rel_violation(sol_wo, N, dist, params, rel);
+        [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
+            rel_check(sol_wo, N, dist, params, rel);
+        fprintf('Min SoH: %f Node: %d\n', sol_wo.sohmin(1), sol_wo.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_wo.mttfmin(1), sol_wo.mttfmin(2));
         fprintf('Violation of sol_wo: %f\n', sol_wo.vio);
     end
     % solve the problem with SoH and MTTF constraints
@@ -152,8 +155,11 @@ if run.cplex
     % plot the solution
     if sol_w.exitflag == 1
         plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
-        sol_w.vio = rel_violation(sol_w, N, dist, params, rel);
-        fprintf('Violation of sol_w: %f\n', sol_w.vio);
+        [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
+            rel_check(sol_w, N, dist, params, rel);
+        fprintf('Min SoH: %f Node: %d\n', sol_w.sohmin(1), sol_w.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_w.mttfmin(1), sol_w.mttfmin(2));
+        fprintf('Violation of sol_wo: %f\n', sol_w.vio);
     end
 end
 
@@ -166,8 +172,11 @@ if run.tatsh
     % plot the solution
     if sol_tatsh.exitflag == 1
         plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem, yScalem]);
-        sol_tatsh.vio = rel_violation(sol_tatsh, N, dist, params, rel);
-        fprintf('Violation of sol_tatsh: %f\n', sol_tatsh.vio);
+        [sol_tatsh.sohmin, sol_tatsh.mttfmin, sol_tatsh.vio] = ...
+            rel_check(sol_tatsh, N, dist, params, rel);
+        fprintf('Min SoH: %f Node: %d\n', sol_tatsh.sohmin(1), sol_tatsh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_tatsh.mttfmin(1), sol_tatsh.mttfmin(2));
+        fprintf('Violation of sol_wo: %f\n', sol_tatsh.vio);
     end
 end
 
@@ -180,8 +189,11 @@ if run.tatsh
     % plot the solution
     if sol_tsh.exitflag == 1
         plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
-        sol_tsh.vio = rel_violation(sol_tsh, N, dist, params, rel);
-        fprintf('Violation of sol_tsh: %f\n', sol_tsh.vio);
+        [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
+            rel_check(sol_tsh, N, dist, params, rel);
+        fprintf('Min SoH: %f Node: %d\n', sol_tsh.sohmin(1), sol_tsh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_tsh.mttfmin(1), sol_tsh.mttfmin(2));
+        fprintf('Violation of sol_wo: %f\n', sol_tsh.vio);
     end
 end
 
@@ -211,7 +223,7 @@ for i = 1:N_cnt
 end
 end
 
-% Calculate the percentage of SoH and reliability violations
+% Check the reliability of the solution
 % Args:
 %   sol: the struct of the solution to be evaluated
 %   N: the struct of grid locations
@@ -220,17 +232,36 @@ end
 %   rel: the struct of reliability options and targets
 %
 % Return:
-%   per: percentage of violations among all deployed sites
-function per = rel_violation(sol, N, dist, params, rel)
+%   sohmin: min SoH of all deployed devices
+%   mttfmin: min MTTF of all deployed devices
+%   vio: percentage of violations among all deployed sites
+
+function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
+    % get number of grid locations
+    N_cnt = size(N, 1);
     % get the power at all grid locations
     pwr = getPwr(sol, N, dist, params);
-    % combine all power bounds from irradiance, SoH and MTTF
-    P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
-    P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
-    P_bound = [vertcat(N(:).Ri), P_soh, P_mttf];
-    P_bound = min(P_bound, [], 2); % get the column vector of min of each row
+    % calculate core temperature
+    Tc = zeros(N_cnt, 1);
+    for i = 1:N_cnt
+        if pwr(i) > 0
+            Tc(i) = amb2core(N(i).Ti, pwr(i));
+        else
+            Tc(i) = 273.15; % in Kelvin, for those undeployed spots
+        end
+    end
+    % calculate minimal SoH of all deployed devices
+    SoH = soh(Tc, rel.T); disp(SoH');
+    sohmin = zeros(1, 2);
+    [sohmin(1), sohmin(2)] = min(SoH);
+    % calculate minimal MTTF of all deployed devices
+    MTTF = mttf(Tc); disp(MTTF');
+    mttfmin = zeros(1, 2);
+    [mttfmin(1), mttfmin(2)] = min(MTTF);
+    % combine all power bounds from N
+    P_bound = vertcat(N(:).Pi);
     % calculate the violation percentage
-    per = sum(pwr > P_bound) / sum(sol.x);
+    vio = sum(pwr > P_bound) / sum(sol.x);    
 end
 
 % plot functions
