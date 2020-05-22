@@ -117,6 +117,7 @@ rel.MTTFref = 0.7;
 run.cplex = false;
 run.tatsh = false;
 run.tsh = false;
+run.srigh = true;
 
 % Call the CPLEX solver
 if run.cplex
