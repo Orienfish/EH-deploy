@@ -216,15 +216,15 @@ if run.srigh
     sparams.A = A;
     sparams.O = N;
     sparams.T = O;
-    res_srigh = srigh(Cparams, sparams);
-    if res_srigh.exitflag == 1
-        plot_solution(N, O, c, res_srigh, params.S_r, [xScalem, yScalem]);
-        [res_srigh.sohmin, res_srigh.mttfmin, res_srigh.vio] = ...
-            rel_check(res_srigh, N, dist, params, rel);
-        fprintf('# of nodes of res_srigh: %d\n', res_srigh.fval);
-        fprintf('Min SoH: %f Node: %d\n', res_srigh.sohmin(1), res_srigh.sohmin(2));
-        fprintf('Min MTTF: %f Node: %d\n', res_srigh.mttfmin(1), res_srigh.mttfmin(2));
-        fprintf('Violation of res_srigh: %f\n', res_srigh.vio);
+    sol_srigh = srigh(Cparams, sparams);
+    if sol_srigh.exitflag == 1
+        plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
+        [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
+            rel_check(sol_srigh, N, dist, params, rel);
+        fprintf('# of nodes of sol_srigh: %d\n', sol_srigh.fval);
+        fprintf('Min SoH: %f Node: %d\n', sol_srigh.sohmin(1), sol_srigh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_srigh.mttfmin(1), sol_srigh.mttfmin(2));
+        fprintf('Violation of sol_srigh: %f\n', sol_srigh.vio);
     end
 end
 
