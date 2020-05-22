@@ -1,6 +1,6 @@
 %% Calculate battery state-of-health.
 % Args:
-%   Tcell: battery cell temperature in Kelvin
+%   Tcell: list of battery cell temperature in Kelvin, Tcell cannot be zero
 %   T: the target time in years
 %
 % Return:
@@ -17,6 +17,6 @@ Tsec = T * 365 * 24 * 3600;
 kt = 4.14e-10;           % time stress coefficient in s-1
 kT = 6.93e-2;            % temperature stress coefficient
 
-SoH = exp(-kt * Tsec * exp(kT * Tref * (1 - (Tref / Tcell))));
+SoH = exp(-kt * Tsec * exp(kT * Tref * (1 - (Tref ./ Tcell))));
 %fprintf('%f\n', SoH);
 end

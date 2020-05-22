@@ -58,7 +58,8 @@ end
 x = s;
 
 % calculate the current power Pi for all grid locations
-P_cur = params.P0 + params.Es * params.eta * s;  % list of current power - only sensing
+P_cur = params.P0 + params.Es * params.eta * s;  % list of current power
+                                                 % only sensing
 
 %% stage 2: select relay nodes for the placed sensor one by one
 % create the directed network graph
@@ -154,9 +155,9 @@ for i=1:N_cnt
             P_inc = (getPtx(dist(i, j)) + params.Prx) * params.eta * ...
                 params.G / params.B;
             weight_ij = tatshparams.w1 * (x(i) == 0) + ...
-                tatshparams.w2 * (1/max(1e-10, (N(i).Ri - P_cur(i) - P_inc)));
+                tatshparams.w2 * (1/max(1e-10, (N(i).Pi - P_cur(i) - P_inc)));
             weight_ji = tatshparams.w1 * (x(j) == 0) + ...
-                tatshparams.w2 * (1/max(1e-10, (N(j).Ri - P_cur(j) - P_inc)));
+                tatshparams.w2 * (1/max(1e-10, (N(j).Pi - P_cur(j) - P_inc)));
             weights = [weights, weight_ij, weight_ji];
         end
     end

@@ -13,7 +13,7 @@
 %   sol.s: binary vector optimal sensor placement
 %   sol.fij: float vector of flows between grid locations
 %   sol.fiB: float vector of flows between grid locations and the sink
-%   sol.Pi: left-hand side and right-hand side of power inequalities
+%   sol.Pi: power of the solution and power bounds
 %   sol.cov: coverage of each target
 
 function sol = solver(N, O, dist, params, rel)
@@ -111,7 +111,8 @@ sol.x = x(xform.x_base+1: xform.x_end);
 sol.s = x(xform.s_base+1: xform.s_end);
 sol.fij = x(xform.fij_base+1: xform.fij_end);
 sol.fiB = x(xform.fiB_base+1: xform.fiB_end);
-sol.Pi = [Apwr * x, bpwr];
+sol.Pi = [Apwr * x + sol.x .* repmat(params.P0, N_cnt, 1), ...
+    bpwr + repmat(params.P0, N_cnt, 1)];
 sol.cov = Ac * x;
 
 end

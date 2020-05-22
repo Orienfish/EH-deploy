@@ -8,9 +8,6 @@
 
 function Tcorei = amb2core(Ti, Pi)
 % coefficients for temperature conversion
-global k_1;
-global k_2;
-global k_3;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % temperature model for RPi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -68,9 +68,11 @@ for j = 0:N_y-1
         % assign the corresponding recharging power in W
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
-        % assign the corresponding temperature in Celsius
-        %N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
-        N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
+        % assign the corresponding temperature distribution in Celsius
+        %N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :);
+        N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
     end
 end
 % plot the heatmap of temperature distribution in the grid map
@@ -104,13 +106,28 @@ dist = getDist(N, c);
 
 % call the amb2core function to load the global variables k_1, k_2, k_3
 Tcorei = amb2core(25, 3);
-
 % specify the reliability options and targets
 rel.SoH = true;
 rel.SoHref = 0.8;
-rel.T = 5;          % years
+rel.T = 5;                              % years
 rel.MTTF = true;
-rel.MTTFref = 0.7;
+rel.MTTFref = 0.75;
+
+% convert the reliability constraints to power constraints
+Pi = vertcat(N(:).Ri);                  % power constraints (W)
+if rel.SoH == true
+    P_soh = Psoh_bound(rel, N);
+    Pi = [Pi, P_soh - repmat(params.P0, N_cnt, 1)];
+end
+if rel.MTTF == true
+    P_mttf = Pmttf_bound(rel, N);
+    Pi = [Pi, P_mttf - repmat(params.P0, N_cnt, 1)];
+end
+disp(Pi);
+Pi = min(Pi, [], 2); % get the column vector of min of each row
+for i = 1:N_cnt
+    N(i).Pi = Pi(i); % clip the power constraints to grid struct
+end
 
 %% Call solvers
 % options to run which solver/algorithm
@@ -127,7 +144,11 @@ if run.cplex
     % plot the solution
     if sol_wo.exitflag == 1
         plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
-        sol_wo.vio = rel_violation(sol_wo, N, dist, params, rel);
+        [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
+            rel_check(sol_wo, N, dist, params, rel);
+        fprintf('# of nodes of sol_wo: %d\n', sol_wo.fval);
+        fprintf('Min SoH: %f Node: %d\n', sol_wo.sohmin(1), sol_wo.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_wo.mttfmin(1), sol_wo.mttfmin(2));
         fprintf('Violation of sol_wo: %f\n', sol_wo.vio);
     end
     % solve the problem with SoH and MTTF constraints
@@ -136,7 +157,11 @@ if run.cplex
     % plot the solution
     if sol_w.exitflag == 1
         plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
-        sol_w.vio = rel_violation(sol_w, N, dist, params, rel);
+        [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
+            rel_check(sol_w, N, dist, params, rel);
+        fprintf('# of nodes of sol_w: %d\n', sol_w.fval);
+        fprintf('Min SoH: %f Node: %d\n', sol_w.sohmin(1), sol_w.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_w.mttfmin(1), sol_w.mttfmin(2));
         fprintf('Violation of sol_w: %f\n', sol_w.vio);
     end
 end
@@ -150,7 +175,11 @@ if run.tatsh
     % plot the solution
     if sol_tatsh.exitflag == 1
         plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem, yScalem]);
-        sol_tatsh.vio = rel_violation(sol_tatsh, N, dist, params, rel);
+        [sol_tatsh.sohmin, sol_tatsh.mttfmin, sol_tatsh.vio] = ...
+            rel_check(sol_tatsh, N, dist, params, rel);
+        fprintf('# of nodes of sol_tatsh: %d\n', sol_tatsh.fval);
+        fprintf('Min SoH: %f Node: %d\n', sol_tatsh.sohmin(1), sol_tatsh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_tatsh.mttfmin(1), sol_tatsh.mttfmin(2));
         fprintf('Violation of sol_tatsh: %f\n', sol_tatsh.vio);
     end
 end
@@ -164,7 +193,11 @@ if run.tsh
     % plot the solution
     if sol_tsh.exitflag == 1
         plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
-        sol_tsh.vio = rel_violation(sol_tsh, N, dist, params, rel);
+        [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
+            rel_check(sol_tsh, N, dist, params, rel);
+        fprintf('# of nodes of sol_tsh: %d\n', sol_tsh.fval);
+        fprintf('Min SoH: %f Node: %d\n', sol_tsh.sohmin(1), sol_tsh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_tsh.mttfmin(1), sol_tsh.mttfmin(2));
         fprintf('Violation of sol_tsh: %f\n', sol_tsh.vio);
     end
 end
@@ -217,7 +250,7 @@ for i = 1:N_cnt
 end
 end
 
-% Calculate the percentage of SoH and reliability violations
+% Check the reliability of the solution
 % Args:
 %   sol: the struct of the solution to be evaluated
 %   N: the struct of grid locations
@@ -226,17 +259,36 @@ end
 %   rel: the struct of reliability options and targets
 %
 % Return:
-%   per: percentage of violations among all deployed sites
-function per = rel_violation(sol, N, dist, params, rel)
+%   sohmin: min SoH of all deployed devices
+%   mttfmin: min MTTF of all deployed devices
+%   vio: percentage of violations among all deployed sites
+
+function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
+    % get number of grid locations
+    N_cnt = size(N, 1);
     % get the power at all grid locations
     pwr = getPwr(sol, N, dist, params);
-    % combine all power bounds from irradiance, SoH and MTTF
-    P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
-    P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
-    P_bound = [vertcat(N(:).Ri), P_soh, P_mttf];
-    P_bound = min(P_bound, [], 2); % get the column vector of min of each row
+    % calculate core temperature
+    Tc = zeros(N_cnt, 1);
+    for i = 1:N_cnt
+        if pwr(i) > 0
+            Tc(i) = amb2core(N(i).Ti, pwr(i));
+        else
+            Tc(i) = 273.15; % in Kelvin, for those undeployed spots
+        end
+    end
+    % calculate minimal SoH of all deployed devices
+    SoH = soh(Tc, rel.T);
+    sohmin = zeros(1, 2);
+    [sohmin(1), sohmin(2)] = min(SoH);
+    % calculate minimal MTTF of all deployed devices
+    MTTF = mttf(Tc);
+    mttfmin = zeros(1, 2);
+    [mttfmin(1), mttfmin(2)] = min(MTTF);
+    % combine all power bounds from N
+    P_bound = vertcat(N(:).Pi);
     % calculate the violation percentage
-    per = sum(pwr > P_bound) / sum(sol.x);
+    vio = sum(pwr > P_bound) / sum(sol.x);    
 end
 
 % plot functions
