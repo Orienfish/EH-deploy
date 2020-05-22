@@ -68,9 +68,11 @@ for j = 0:N_y-1
         % assign the corresponding recharging power in W
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
-        % assign the corresponding temperature in Celsius
-        %N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
-        N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
+        % assign the corresponding temperature distribution in Celsius
+        %N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :);
+        N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
     end
 end
 % plot the heatmap of temperature distribution in the grid map
@@ -114,14 +116,12 @@ rel.MTTFref = 0.75;
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri);                  % power constraints (W)
 if rel.SoH == true
-    P_soh = Psoh_bound(rel.SoHref, rel.T, vertcat(N(:).Ti));
+    P_soh = Psoh_bound(rel, N);
     Pi = [Pi, P_soh - repmat(params.P0, N_cnt, 1)];
-    Pi = max(Pi, 0);
 end
 if rel.MTTF == true
-    P_mttf = Pmttf_bound(rel.MTTFref, vertcat(N(:).Ti));
+    P_mttf = Pmttf_bound(rel, N);
     Pi = [Pi, P_mttf - repmat(params.P0, N_cnt, 1)];
-    Pi = max(Pi, 0);
 end
 disp(Pi);
 Pi = min(Pi, [], 2); % get the column vector of min of each row
@@ -131,9 +131,9 @@ end
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = true;
-run.tatsh = true;
-run.tsh = true;
+run.cplex = false;
+run.tatsh = false;
+run.tsh = false;
 
 % Call the CPLEX solver
 if run.cplex
