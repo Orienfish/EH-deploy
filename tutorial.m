@@ -34,10 +34,10 @@ yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT
 xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
 
 % set the size and granularity of the grid space 
-xScalem = 1000;    % m
-yScalem = 1000;    % m
-N_x = 10;
-N_y = 10;
+xScalem = 2000;    % m
+yScalem = 2000;    % m
+N_x = 20;
+N_y = 20;
 N_cnt = N_x * N_y;      % number of grid points
 Unit_x = floor(xScalem / (N_x - 1));
 Unit_y = floor(yScalem / (N_y - 1));
@@ -137,7 +137,7 @@ end
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = true;
+run.cplex = false;
 run.tatsh = true;
 run.tsh = true;
 
@@ -172,8 +172,8 @@ if run.cplex
 end
 
 % Call TATSH
-tatshparams.w1 = 1;     % weight for placing new node
-tatshparams.w2 = 0.01;  % weight for remained power budget
+tatshparams.w1 = 500;  % weight for placing new node
+tatshparams.w2 = 800;  % weight for remained power budget
 if run.tatsh
     fprintf('calling TATSH...\n');
     sol_tatsh = TATSH(N, O, dist, params, tatshparams);
