@@ -70,8 +70,8 @@ for j = 0:N_y-1
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature distribution in Celsius
         %N(i + j * N_x + 1).Ti = 25 + (40 - 25) * j / N_y;
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :);
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 3.0;
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 3.0;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
     end
 end
@@ -108,20 +108,20 @@ dist = getDist(N, c);
 Tcorei = amb2core(25, 3);
 % specify the reliability options and targets
 rel.SoH = true;
-rel.SoHref = 0.8;
+rel.SoHref = 0.90;
 rel.T = 5;                              % years
 rel.MTTF = true;
-rel.MTTFref = 0.75;
+rel.MTTFref = 0.90;
 
 % convert the reliability constraints to power constraints
-Pi = vertcat(N(:).Ri);                  % power constraints (W)
+Pi = vertcat(N(:).Ri) ;                  % power constraints (W)
 if rel.SoH == true
     P_soh = Psoh_bound(rel, N);
-    Pi = [Pi, P_soh - repmat(params.P0, N_cnt, 1)];
+    Pi = [Pi, P_soh];
 end
 if rel.MTTF == true
     P_mttf = Pmttf_bound(rel, N);
-    Pi = [Pi, P_mttf - repmat(params.P0, N_cnt, 1)];
+    Pi = [Pi, P_mttf];
 end
 disp(Pi);
 Pi = min(Pi, [], 2); % get the column vector of min of each row

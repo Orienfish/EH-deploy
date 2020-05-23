@@ -12,7 +12,7 @@ function P_sohi = Psoh_bound(rel, N)
 % initialization
 N_cnt = size(N, 1);         % number of grid locations
 P_sohi = zeros(N_cnt, 1);   % power bounds imposed by SoH
-N_bin = size(N.Centers, 2); % number of temperature bins
+N_bin = length(N(1).Tcen);  % number of temperature bins
 eps = 1e-4;                 % acceptable precision of the output power bound
 % start the binary search
 for i = 1:N_cnt
@@ -26,16 +26,17 @@ for i = 1:N_cnt
             Tcellj = amb2core(N(i).Tcen(j), pwr_cur);
             SoH_cur = SoH_cur + N(i).Tcnt(j) * soh(Tcellj, rel.T);
         end
+        %fprintf('SoH_cur: %f pwr_cur: %f\n', SoH_cur, pwr_cur);
         % decide the next power lower bound or upper bound
         if SoH_cur == rel.SoHref % not really possible
             break;
-        elseif SoH_cur > rel.SoHref % current power is too high
-            pwr_ub = pwr_cur;
-        else % current power is still low
+        elseif SoH_cur > rel.SoHref % SoH is save, current power is low
             pwr_lb = pwr_cur;
+        else % SoH violates the bound, current power is too high
+            pwr_ub = pwr_cur;
         end
-        disp([pwr_lb, pwr_ub]);
     end
+    %fprintf('Final pwr for %d: %f\n', i, 0.5 * (pwr_lb + pwr_ub));
     P_sohi(i) = 0.5 * (pwr_lb + pwr_ub);
 end
 end
