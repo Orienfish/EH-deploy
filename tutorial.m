@@ -116,11 +116,11 @@ rel.MTTFref = 0.75;
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri);                  % power constraints (W)
 if rel.SoH == true
-    P_soh = Psoh_bound(rel, N, Centers);
+    P_soh = Psoh_bound(rel, N, N.Centers);
     Pi = [Pi, P_soh - repmat(params.P0, N_cnt, 1)];
 end
 if rel.MTTF == true
-    P_mttf = Pmttf_bound(rel, N, Centers);
+    P_mttf = Pmttf_bound(rel, N, N.Centers);
     Pi = [Pi, P_mttf - repmat(params.P0, N_cnt, 1)];
 end
 disp(Pi);

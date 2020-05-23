@@ -8,11 +8,11 @@
 %   P_sohi: list of expected upper bound for average power to satisfy SoH
 %           under the current temperature distribution
 
-function P_sohi = Psoh_bound(rel, N, Centers)
+function P_sohi = Psoh_bound(rel, N)
 % initialization
 N_cnt = size(N, 1);         % number of grid locations
 P_sohi = zeros(N_cnt, 1);   % power bounds imposed by SoH
-N_bin = size(Centers, 2); % number of temperature bins
+N_bin = size(N.Centers, 2); % number of temperature bins
 eps = 1e-4;                 % acceptable precision of the output power bound
 % start the binary search
 for i = 1:N_cnt
