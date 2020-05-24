@@ -1,4 +1,4 @@
-%% srigh algorithm
+%% SRIGH algorithm
 % Cparams: basic parameters
 % sparams: parameters for srigh
 function [res] = SRIGH(Cparams, sparams)
