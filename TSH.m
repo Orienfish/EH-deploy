@@ -133,8 +133,10 @@ for i=1:N_cnt
             % if connectable, add pair [i, j] and [j, i] to [st, ed]
             st = [st, i, j]; ed = [ed, j, i];
             % update weight from i to j and from j to i
-            weight_ij = tshparams.w1 * (x(i) == 0) + tshparams.w2 * cost(i);
-            weight_ji = tshparams.w1 * (x(j) == 0) + tshparams.w2 * cost(j);
+            weight_ij = tshparams.w1 * (x(i) == 0) / sum(x) + ...
+                tshparams.w2 * cost(i);
+            weight_ji = tshparams.w1 * (x(j) == 0) / sum(x) + ...
+                tshparams.w2 * cost(j);
             weights = [weights, weight_ij, weight_ji];
         end
     end
