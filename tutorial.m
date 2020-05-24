@@ -33,7 +33,7 @@ origin = [min(dataT.lat), min(dataT.lon)];
 yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT.lon)]);
 xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
 
-% set the size and granularity of the grid space 
+% set the size and granularity of the grid space
 xScalem = 1000;    % m
 yScalem = 1000;    % m
 N_x = 10;
@@ -49,7 +49,7 @@ xi = 0.05;              % end-to-end conversion efficiency of solar system
 x_transform = (max(dataT.lon) - min(dataT.lon)) / xScalem;
 y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem;
 
-% generate the grid candidate set N 
+% generate the grid candidate set N
 % with their x, y coordinates and temperature and DNI
 empty_point.position = [];
 empty_point.Ri = [];
@@ -125,7 +125,7 @@ end
 if rel.MTTF == true
     % use piece-wise approximation of ambient temperature over time
     P_mttf = Pmttf_bound(rel, N);
-    % use average ambient temperation at one location 
+    % use average ambient temperation at one location
     %P_mttf_Tavg = Pmttf_bound_Tavg(rel.MTTFref, vertcat(N(:).Ti));
     Pi = [Pi, P_mttf];
 end
@@ -140,6 +140,7 @@ end
 run.cplex = true;
 run.tatsh = true;
 run.tsh = true;
+run.srigh = false;
 
 % Call the CPLEX solver
 if run.cplex
@@ -192,7 +193,7 @@ end
 % Call TSH
 tshparams.w1 = 500;     % cost for adding a new node
 tshparams.w2 = 800;     % cost for adding per area of solar panel
-if run.tatsh
+if run.tsh
     fprintf('calling TSH...\n');
     sol_tsh = TSH(N, O, dist, params, tatshparams);
     % plot the solution
@@ -204,6 +205,32 @@ if run.tatsh
         fprintf('Min SoH: %f Node: %d\n', sol_tsh.sohmin(1), sol_tsh.sohmin(2));
         fprintf('Min MTTF: %f Node: %d\n', sol_tsh.mttfmin(1), sol_tsh.mttfmin(2));
         fprintf('Violation of sol_tsh: %f\n', sol_tsh.vio);
+    end
+end
+
+% Call SRIGH
+if run.srigh
+    fprintf('calling SRIGH...\n');
+    % prepare for calling srigh
+    Cparams = params;
+    Cparams.N = params.N_o;
+    Cparams.M = N_cnt;
+    Cparams.dist = dist;
+
+    sparams.w1 = 500;     % cost for adding a new node
+    sparams.w2 = 800;     % cost for adding per area of solar panel
+    sparams.A = A;
+    sparams.O = N;
+    sparams.T = O;
+    sol_srigh = srigh(Cparams, sparams);
+    if sol_srigh.exitflag == 1
+        plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
+        [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
+            rel_check(sol_srigh, N, dist, params, rel);
+        fprintf('# of nodes of sol_srigh: %d\n', sol_srigh.fval);
+        fprintf('Min SoH: %f Node: %d\n', sol_srigh.sohmin(1), sol_srigh.sohmin(2));
+        fprintf('Min MTTF: %f Node: %d\n', sol_srigh.mttfmin(1), sol_srigh.mttfmin(2));
+        fprintf('Violation of sol_srigh: %f\n', sol_srigh.vio);
     end
 end
 
@@ -280,7 +307,7 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
     %P_bound = vertcat(N(:).Pi);
     % calculate the violation percentage
     vio = (sum(SoH < rel.SoHref) + sum(MTTF < rel.MTTFref)) / ...
-        (2 * sum(sol.x));    
+        (2 * sum(sol.x));
 end
 
 % plot functions
@@ -305,7 +332,7 @@ end
 function plot_solution(N, O, c, sol, S_r, maxlim)
     % intialization
     N_cnt = size(N, 1);  % number of grid locations
-    
+
     % scatter
     color_map = [[0 0.4470 0.7410]; ...       % blue
         [0.8500 0.3250 0.0980]; ...           % orange
@@ -322,7 +349,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
     scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes, 'filled', ...
         'LineWidth', 2);
     hold on;
-    
+
     % plot the coverage circle
     cplot = @(r, x0, y0) plot(x0 + r * cos(linspace(0, 2*pi)), ...
         y0 + r * sin(linspace(0, 2*pi)),'r-', 'LineWidth', 2);
@@ -332,7 +359,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
             axis equal; hold on;
         end
     end
-    
+
     % plot the line segment representing flows
     ls = [];             % list of line segments
     for i = 1:N_cnt
