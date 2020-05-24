@@ -1,7 +1,7 @@
 %% srigh algorithm
 % Cparams: basic parameters
 % sparams: parameters for srigh
-function [res] = srigh(Cparams, sparams)
+function [res] = SRIGH(Cparams, sparams)
 % Cparams.M: number of deployment sites
 % Cparams.N: number of targets
 % Cparams.S_r: sensing radius
