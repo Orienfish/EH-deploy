@@ -44,6 +44,7 @@ res_target_s = [];
 for i=1:length(N_o_list)
     fprintf('Running small target exp with %d targets\n', N_o_list(i));
     for j=1:iter
+        fprintf('iter %d\n', j);
         exp_opt.N_o = N_o_list(i);
         res = exp_func(run, exp_opt);
         res_target_s = [res_target_s; fill_resT(res, run)];
@@ -58,6 +59,7 @@ res_site_s = [];
 for i=1:length(N_x_list)
     fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
     for j=1:iter
+        fprintf('iter %d\n', j);
         exp_opt.N_x = N_x_list(i);
         res = exp_func(run, exp_opt);
         res_site_s = [res_site_s; fill_resT(res, run)];
@@ -86,6 +88,7 @@ res_target_l = [];
 for i=1:length(N_o_list)
     fprintf('Running large target exp with %d targets\n', N_o_list(i));
     for j=1:iter
+        fprintf('iter %d\n', j);
         exp_opt.N_o = N_o_list(i);
         res = exp_func(run, exp_opt);
         res_target_l = [res_target_l; fill_resT(res, run)];
@@ -100,6 +103,7 @@ res_site_l = [];
 for i=1:length(N_x_list)
     fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
     for j=1:iter
+        fprintf('iter %d\n', j);
         exp_opt.N_x = N_x_list(i);
         res = exp_func(run, exp_opt);
         res_site_l = [res_site_l; fill_resT(res, run)];
