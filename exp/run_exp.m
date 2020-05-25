@@ -53,7 +53,7 @@ for i=1:length(N_o_list)
         res_target_s = [res_target_s; fill_resT(res, run)];
     end
 end
-exp_top.N_o = 20;                       % reset to standard value
+exp_opt.N_o = 20;                       % reset to standard value
 writetable(res_target_s, './res_target_small.csv');
 
 % Subtest 2: various number of sites
@@ -64,6 +64,7 @@ for i=1:length(N_x_list)
     for j=1:iter
         fprintf('iter %d\n', j);
         exp_opt.N_x = N_x_list(i);
+        res = exp_func(run, exp_opt);
         while isempty(res)
             res = exp_func(run, exp_opt);
         end
@@ -95,13 +96,14 @@ for i=1:length(N_o_list)
     for j=1:iter
         fprintf('iter %d\n', j);
         exp_opt.N_o = N_o_list(i);
+        res = exp_func(run, exp_opt);
         while isempty(res)
             res = exp_func(run, exp_opt);
         end
         res_target_l = [res_target_l; fill_resT(res, run)];
     end
 end
-exp_top.N_o = 100;                       % reset to standard value
+exp_opt.N_o = 100;                       % reset to standard value
 writetable(res_target_l, './res_target_large.csv');
 
 % Subtest 2: various number of sites
@@ -112,6 +114,7 @@ for i=1:length(N_x_list)
     for j=1:iter
         fprintf('iter %d\n', j);
         exp_opt.N_x = N_x_list(i);
+        res = exp_func(run, exp_opt);
         while isempty(res)
             res = exp_func(run, exp_opt);
         end
