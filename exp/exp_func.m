@@ -74,8 +74,8 @@ for j = 0:N_y-1
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature distribution in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 4.0;
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 4.0;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 2.0;
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 2.0;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
     end
 end
@@ -160,7 +160,7 @@ if run.cplex
                 rel_check(sol_wo, N, dist, params, rel);
             log('OPT_wo', sol_wo);
         end
-        res.sol_wo = sol_wo;
+        
         % solve the problem with SoH and MTTF constraints
         rel.SoH = true; rel.MTTF = true;
         tic
@@ -173,7 +173,6 @@ if run.cplex
                 rel_check(sol_w, N, dist, params, rel);
             log('OPT', sol_w);
         end
-        res.sol_w = sol_w;
     catch
         fprintf('No feasible solution from CPLEX!\n');
         return;
@@ -196,7 +195,6 @@ if run.rdtsh
                 rel_check(sol_rdtsh, N, dist, params, rel);
             log('RDTSH', sol_rdtsh);
         end
-        res.sol_rdtsh = sol_rdtsh;
     catch
         fprintf('No feasible solution from RDTSH!\n');
         return;
@@ -219,7 +217,6 @@ if run.tsh
                 rel_check(sol_tsh, N, dist, params, rel);
             log('TSH', sol_tsh);
         end
-        res.sol_tsh = sol_tsh;
     catch
         fprintf('No feasible solution from TSH!\n');
         return;
@@ -250,13 +247,18 @@ if run.srigh
                 rel_check(sol_srigh, N, dist, params, rel);
             log('SRIGH', sol_srigh);
         end
-        res.sol_srigh = sol_srigh;
     catch
         fprintf('No feasible solution from SRIGH!\n');
         return;
     end
 end
 
+% fill in result struct
+res.sol_wo = sol_wo;
+res.sol_w = sol_w;
+res.sol_rdtsh = sol_rdtsh;
+res.sol_tsh = sol_tsh;
+res.sol_srigh = sol_srigh;
 % end of exp func
 end
 

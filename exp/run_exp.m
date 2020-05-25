@@ -35,7 +35,7 @@ run.tsh = true;
 run.srigh = true;
 
 % set test rounds
-iter = 20;
+iter = 40;
 
 % Call exp functions
 % Subtest 1: various number of targets
