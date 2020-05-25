@@ -138,7 +138,7 @@ end
 %% Call solvers
 % options to run which solver/algorithm
 run.cplex = true;
-run.tatsh = true;
+run.rdtsh = true;
 run.tsh = true;
 run.srigh = true;
 
@@ -146,47 +146,44 @@ run.srigh = true;
 if run.cplex
     % solve the problem without SoH and MTTF constraints
     rel.SoH = false; rel.MTTF = false;
+    tic
     sol_wo = solver(N, O, dist, params, rel);
+    sol_wo.time = toc;
     % plot the solution
     if sol_wo.exitflag == 1
         plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
         [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
             rel_check(sol_wo, N, dist, params, rel);
-        fprintf('# of nodes of sol_wo: %d\n', sol_wo.fval);
-        fprintf('Min SoH: %f Node: %d\n', sol_wo.sohmin(1), sol_wo.sohmin(2));
-        fprintf('Min MTTF: %f Node: %d\n', sol_wo.mttfmin(1), sol_wo.mttfmin(2));
-        fprintf('Violation of sol_wo: %f\n', sol_wo.vio);
+        log('OPT_wo', sol_wo);
     end
     % solve the problem with SoH and MTTF constraints
     rel.SoH = true; rel.MTTF = true;
+    tic
     sol_w = solver(N, O, dist, params, rel);
+    sol_w.time = toc;
     % plot the solution
     if sol_w.exitflag == 1
         plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
         [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
             rel_check(sol_w, N, dist, params, rel);
-        fprintf('# of nodes of sol_w: %d\n', sol_w.fval);
-        fprintf('Min SoH: %f Node: %d\n', sol_w.sohmin(1), sol_w.sohmin(2));
-        fprintf('Min MTTF: %f Node: %d\n', sol_w.mttfmin(1), sol_w.mttfmin(2));
-        fprintf('Violation of sol_w: %f\n', sol_w.vio);
+        log('OPT', sol_w);
     end
 end
 
-% Call TATSH
-if run.tatsh
-    fprintf('calling TATSH...\n');
+% Call RDTSH
+if run.rdtsh
+    fprintf('calling RDTSH...\n');
     tatshparams.w1 = 500;  % weight for placing new node
     tatshparams.w2 = 800;  % weight for remained power budget
-    sol_tatsh = TATSH(N, O, dist, params, tatshparams);
+    tic
+    sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
+    sol_rdtsh.time = toc;
     % plot the solution
-    if sol_tatsh.exitflag == 1
-        plot_solution(N, O, c, sol_tatsh, params.S_r, [xScalem, yScalem]);
-        [sol_tatsh.sohmin, sol_tatsh.mttfmin, sol_tatsh.vio] = ...
-            rel_check(sol_tatsh, N, dist, params, rel);
-        fprintf('# of nodes of sol_tatsh: %d\n', sol_tatsh.fval);
-        fprintf('Min SoH: %f Node: %d\n', sol_tatsh.sohmin(1), sol_tatsh.sohmin(2));
-        fprintf('Min MTTF: %f Node: %d\n', sol_tatsh.mttfmin(1), sol_tatsh.mttfmin(2));
-        fprintf('Violation of sol_tatsh: %f\n', sol_tatsh.vio);
+    if sol_rdtsh.exitflag == 1
+        plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
+        [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
+            rel_check(sol_rdtsh, N, dist, params, rel);
+        log('RDTSH', sol_rdtsh);
     end
 end
 
@@ -195,16 +192,15 @@ if run.tsh
     fprintf('calling TSH...\n');
     tshparams.w1 = 500;     % cost for adding a new node
     tshparams.w2 = 800;     % cost for adding per area of solar panel
+    tic
     sol_tsh = TSH(N, O, dist, params, tatshparams);
+    sol_tsh.time = toc;
     % plot the solution
     if sol_tsh.exitflag == 1
         plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
         [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
             rel_check(sol_tsh, N, dist, params, rel);
-        fprintf('# of nodes of sol_tsh: %d\n', sol_tsh.fval);
-        fprintf('Min SoH: %f Node: %d\n', sol_tsh.sohmin(1), sol_tsh.sohmin(2));
-        fprintf('Min MTTF: %f Node: %d\n', sol_tsh.mttfmin(1), sol_tsh.mttfmin(2));
-        fprintf('Violation of sol_tsh: %f\n', sol_tsh.vio);
+        log('TSH', sol_tsh);
     end
 end
 
@@ -222,15 +218,14 @@ if run.srigh
     sparams.A = A;
     sparams.O = N;
     sparams.T = O;
+    tic
     sol_srigh = SRIGH(Cparams, sparams);
+    sol_srigh.time = toc;
     if sol_srigh.exitflag == 1
         plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
         [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
             rel_check(sol_srigh, N, dist, params, rel);
-        fprintf('# of nodes of sol_srigh: %d\n', sol_srigh.fval);
-        fprintf('Min SoH: %f Node: %d\n', sol_srigh.sohmin(1), sol_srigh.sohmin(2));
-        fprintf('Min MTTF: %f Node: %d\n', sol_srigh.mttfmin(1), sol_srigh.mttfmin(2));
-        fprintf('Violation of sol_srigh: %f\n', sol_srigh.vio);
+        log('SRIGH', sol_srigh);
     end
 end
 
@@ -269,10 +264,9 @@ end
 %   rel: the struct of reliability options and targets
 %
 % Return:
-%   sohmin: min SoH of all deployed devices
-%   mttfmin: min MTTF of all deployed devices
+%   sohmin: min SoH of all deployed devices and the bottleneck node id
+%   mttfmin: min MTTF of all deployed devices and the bottleneck node id
 %   vio: percentage of violations among all deployed sites
-
 function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
     N_cnt = size(N, 1);         % get number of grid locations
     N_bin = length(N(1).Tcen);  % number of temperature bins
@@ -308,6 +302,15 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
     % calculate the violation percentage
     vio = (sum(SoH < rel.SoHref) + sum(MTTF < rel.MTTFref)) / ...
         (2 * sum(sol.x));
+end
+
+% logging function
+function log(name, sol)
+    fprintf('# of nodes of %s: %d\n', name, sol.fval);
+    fprintf('Min SoH: %f Node: %d\n', sol.sohmin(1), sol.sohmin(2));
+    fprintf('Min MTTF: %f Node: %d\n', sol.mttfmin(1), sol.mttfmin(2));
+    fprintf('Violation of %s: %f\n', name, sol.vio);
+    fprintf('Execution time of %s: %f\n', name, sol.time);
 end
 
 % plot functions
