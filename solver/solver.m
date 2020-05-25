@@ -102,7 +102,7 @@ options = cplexoptimset;
 options.Display = 'Off';
 [x, fval, exitflag, output] = cplexmilp(f, Aineq, bineq, Aeq, beq, ...
     [], [], [], lb, ub, ctype, x0);
-output
+%output
 
 % fill the solution
 sol.fval = fval;

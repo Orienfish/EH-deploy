@@ -11,6 +11,7 @@ addpath('../lldistkm');
 addpath('../solver');
 addpath('../libs');
 addpath('../');
+res = [];
 
 %% Initialization of the grid map
 % pre-process solar and temperature data
@@ -147,93 +148,113 @@ end
 % Call the CPLEX solver
 if run.cplex
     % solve the problem without SoH and MTTF constraints
-    rel.SoH = false; rel.MTTF = false;
-    tic
-    sol_wo = solver(N, O, dist, params, rel);
-    sol_wo.time = toc;
-    % plot the solution
-    if sol_wo.exitflag == 1
-        %plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
-        [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
-            rel_check(sol_wo, N, dist, params, rel);
-        log('OPT_wo', sol_wo);
+    try
+        rel.SoH = false; rel.MTTF = false;
+        tic
+        sol_wo = solver(N, O, dist, params, rel);
+        sol_wo.time = toc;
+        % plot the solution
+        if sol_wo.exitflag == 1
+            %plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
+            [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
+                rel_check(sol_wo, N, dist, params, rel);
+            log('OPT_wo', sol_wo);
+        end
+        res.sol_wo = sol_wo;
+        % solve the problem with SoH and MTTF constraints
+        rel.SoH = true; rel.MTTF = true;
+        tic
+        sol_w = solver(N, O, dist, params, rel);
+        sol_w.time = toc;
+        % plot the solution
+        if sol_w.exitflag == 1
+            %plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
+            [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
+                rel_check(sol_w, N, dist, params, rel);
+            log('OPT', sol_w);
+        end
+        res.sol_w = sol_w;
+    catch
+        fprintf('No feasible solution from CPLEX!\n');
+        return;
     end
-    res.sol_wo = sol_wo;
-    % solve the problem with SoH and MTTF constraints
-    rel.SoH = true; rel.MTTF = true;
-    tic
-    sol_w = solver(N, O, dist, params, rel);
-    sol_w.time = toc;
-    % plot the solution
-    if sol_w.exitflag == 1
-        %plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
-        [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
-            rel_check(sol_w, N, dist, params, rel);
-        log('OPT', sol_w);
-    end
-    res.sol_w = sol_w;
 end
 
 % Call RDTSH
 if run.rdtsh
-    fprintf('calling RDTSH...\n');
-    tatshparams.w1 = 500;  % weight for placing new node
-    tatshparams.w2 = 800;  % weight for remained power budget
-    tic
-    sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
-    sol_rdtsh.time = toc;
-    % plot the solution
-    if sol_rdtsh.exitflag == 1
-        %plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
-        [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
-            rel_check(sol_rdtsh, N, dist, params, rel);
-        log('RDTSH', sol_rdtsh);
-    end
-    res.sol_rdtsh = sol_rdtsh;
+    try
+        fprintf('calling RDTSH...\n');
+        tatshparams.w1 = 500;  % weight for placing new node
+        tatshparams.w2 = 800;  % weight for remained power budget
+        tic
+        sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
+        sol_rdtsh.time = toc;
+        % plot the solution
+        if sol_rdtsh.exitflag == 1
+            %plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
+            [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
+                rel_check(sol_rdtsh, N, dist, params, rel);
+            log('RDTSH', sol_rdtsh);
+        end
+        res.sol_rdtsh = sol_rdtsh;
+    catch
+        fprintf('No feasible solution from RDTSH!\n');
+        return;
+    end  
 end
 
 % Call TSH
 if run.tsh
-    fprintf('calling TSH...\n');
-    tshparams.w1 = 500;     % cost for adding a new node
-    tshparams.w2 = 800;     % cost for adding per area of solar panel
-    tic
-    sol_tsh = TSH(N, O, dist, params, tatshparams);
-    sol_tsh.time = toc;
-    % plot the solution
-    if sol_tsh.exitflag == 1
-        %plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
-        [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
-            rel_check(sol_tsh, N, dist, params, rel);
-        log('TSH', sol_tsh);
+    try
+        fprintf('calling TSH...\n');
+        tshparams.w1 = 500;     % cost for adding a new node
+        tshparams.w2 = 800;     % cost for adding per area of solar panel
+        tic
+        sol_tsh = TSH(N, O, dist, params, tshparams);
+        sol_tsh.time = toc;
+        % plot the solution
+        if sol_tsh.exitflag == 1
+            %plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
+            [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
+                rel_check(sol_tsh, N, dist, params, rel);
+            log('TSH', sol_tsh);
+        end
+        res.sol_tsh = sol_tsh;
+    catch
+        fprintf('No feasible solution from TSH!\n');
+        return;
     end
-    res.sol_tsh = sol_tsh;
 end
 
 % Call SRIGH
 if run.srigh
-    fprintf('calling SRIGH...\n');
-    % prepare for calling srigh
-    Cparams = params;
-    Cparams.N = params.N_o;
-    Cparams.M = N_cnt;
-    Cparams.dist = dist;
+    try
+        fprintf('calling SRIGH...\n');
+        % prepare for calling srigh
+        Cparams = params;
+        Cparams.N = params.N_o;
+        Cparams.M = N_cnt;
+        Cparams.dist = dist;
 
-    sparams.w1 = 100;      % cost for adding a new node
-    sparams.w2 = 2000;     % cost for adding per area of solar panel
-    sparams.A = A;
-    sparams.O = N;
-    sparams.T = O;
-    tic
-    sol_srigh = SRIGH(Cparams, sparams);
-    sol_srigh.time = toc;
-    if sol_srigh.exitflag == 1
-        %plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
-        [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
-            rel_check(sol_srigh, N, dist, params, rel);
-        log('SRIGH', sol_srigh);
+        sparams.w1 = 100;      % cost for adding a new node
+        sparams.w2 = 2000;     % cost for adding per area of solar panel
+        sparams.A = A;
+        sparams.O = N;
+        sparams.T = O;
+        tic
+        sol_srigh = SRIGH(Cparams, sparams);
+        sol_srigh.time = toc;
+        if sol_srigh.exitflag == 1
+            %plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
+            [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
+                rel_check(sol_srigh, N, dist, params, rel);
+            log('SRIGH', sol_srigh);
+        end
+        res.sol_srigh = sol_srigh;
+    catch
+        fprintf('No feasible solution from SRIGH!\n');
+        return;
     end
-    res.sol_srigh = sol_srigh;
 end
 
 

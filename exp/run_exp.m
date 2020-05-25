@@ -47,6 +47,9 @@ for i=1:length(N_o_list)
         fprintf('iter %d\n', j);
         exp_opt.N_o = N_o_list(i);
         res = exp_func(run, exp_opt);
+        while isempty(res)
+            res = exp_func(run, exp_opt);
+        end
         res_target_s = [res_target_s; fill_resT(res, run)];
     end
 end
@@ -61,7 +64,9 @@ for i=1:length(N_x_list)
     for j=1:iter
         fprintf('iter %d\n', j);
         exp_opt.N_x = N_x_list(i);
-        res = exp_func(run, exp_opt);
+        while isempty(res)
+            res = exp_func(run, exp_opt);
+        end
         res_site_s = [res_site_s; fill_resT(res, run)];
     end
 end
@@ -90,7 +95,9 @@ for i=1:length(N_o_list)
     for j=1:iter
         fprintf('iter %d\n', j);
         exp_opt.N_o = N_o_list(i);
-        res = exp_func(run, exp_opt);
+        while isempty(res)
+            res = exp_func(run, exp_opt);
+        end
         res_target_l = [res_target_l; fill_resT(res, run)];
     end
 end
@@ -105,7 +112,9 @@ for i=1:length(N_x_list)
     for j=1:iter
         fprintf('iter %d\n', j);
         exp_opt.N_x = N_x_list(i);
-        res = exp_func(run, exp_opt);
+        while isempty(res)
+            res = exp_func(run, exp_opt);
+        end
         res_site_l = [res_site_l; fill_resT(res, run)];
     end
 end
