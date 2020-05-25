@@ -257,9 +257,10 @@ if run.srigh
     end
 end
 
-
 % end of exp func
 end
+
+
 %% Appendix functions
 % Get distance matrix between grid points
 % Args:
