@@ -41,9 +41,9 @@ iter = 40;
 % Subtest 1: various number of targets
 N_o_list = [5, 10, 15, 20, 25, 30];
 res_target_s = [];
-for i=length(N_o_list)
+for i=1:length(N_o_list)
     fprintf('Running small target exp with %d targets\n', N_o_list(i));
-    for j=1:1:iter
+    for j=1:iter
         exp_opt.N_o = N_o_list(i);
         res = exp_func(run, exp_opt);
         res_target_s = [res_target_s; fill_resT(res, run)];
@@ -55,9 +55,9 @@ writetable(res_target_s, './res_target_small.csv');
 % Subtest 2: various number of sites
 N_x_list = [10, 11, 12, 13, 14, 15];
 res_site_s = [];
-for i=length(N_x_list)
+for i=1:length(N_x_list)
     fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
-    for j=1:1:iter
+    for j=1:iter
         exp_opt.N_x = N_x_list(i);
         res = exp_func(run, exp_opt);
         res_site_s = [res_site_s; fill_resT(res, run)];
@@ -83,9 +83,9 @@ iter = 40;
 % Subtest 1: various number of targets
 N_o_list = [50, 100, 150, 200, 250, 300];
 res_target_l = [];
-for i=length(N_o_list)
+for i=1:length(N_o_list)
     fprintf('Running large target exp with %d targets\n', N_o_list(i));
-    for j=1:1:iter
+    for j=1:iter
         exp_opt.N_o = N_o_list(i);
         res = exp_func(run, exp_opt);
         res_target_l = [res_target_l; fill_resT(res, run)];
@@ -97,9 +97,9 @@ writetable(res_target_l, './res_target_large.csv');
 % Subtest 2: various number of sites
 N_x_list = [100, 110, 120, 130, 140, 150];
 res_site_l = [];
-for i=length(N_x_list)
+for i=1:length(N_x_list)
     fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
-    for j=1:1:iter
+    for j=1:iter
         exp_opt.N_x = N_x_list(i);
         res = exp_func(run, exp_opt);
         res_site_l = [res_site_l; fill_resT(res, run)];
