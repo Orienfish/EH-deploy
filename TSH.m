@@ -26,7 +26,7 @@ fij = zeros(N_cnt^2, 1);        % flow matrix between grids
 fiB = zeros(N_cnt, 1);          % flow vector to the sink
 
 % the cost vector of adding a solar panel
-cost = tshparams.w2 * (getPtx(params.C_r) + params.Prx) * params.eta * ...
+cost = (getPtx(params.C_r) + params.Prx) * params.eta * ...
     params.G / params.B ./ vertcat(N(:).Ri);
 
 %% stage 1: select sensor nodes

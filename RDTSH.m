@@ -60,7 +60,6 @@ x = s;
 % calculate the current power Pi for all grid locations
 P_cur = params.P0 + params.Es * params.eta * s;  % list of current power
                                                  % only sensing
-%cost = tatshparams.w2 ./ (vertcat(N(:).Pi) - P_cur);
                                                  
 %% stage 2: select relay nodes for the placed sensor one by one
 % create the directed network graph
