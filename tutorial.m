@@ -149,7 +149,7 @@ if run.cplex
         sol_wo.time = toc;
         % plot the solution
         if sol_wo.exitflag == 1
-            %plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
             [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
                 rel_check(sol_wo, N, dist, params, rel);
             log('OPT_wo', sol_wo);
@@ -162,7 +162,7 @@ if run.cplex
         sol_w.time = toc;
         % plot the solution
         if sol_w.exitflag == 1
-            %plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
             [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
                 rel_check(sol_w, N, dist, params, rel);
             log('OPT', sol_w);
@@ -184,7 +184,7 @@ if run.rdtsh
         sol_rdtsh.time = toc;
         % plot the solution
         if sol_rdtsh.exitflag == 1
-            %plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
             [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
                 rel_check(sol_rdtsh, N, dist, params, rel);
             log('RDTSH', sol_rdtsh);
@@ -206,7 +206,7 @@ if run.tsh
         sol_tsh.time = toc;
         % plot the solution
         if sol_tsh.exitflag == 1
-            %plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
             [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
                 rel_check(sol_tsh, N, dist, params, rel);
             log('TSH', sol_tsh);
@@ -236,7 +236,7 @@ if run.srigh
         sol_srigh = SRIGH(Cparams, sparams);
         sol_srigh.time = toc;
         if sol_srigh.exitflag == 1
-            %plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
             [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
                 rel_check(sol_srigh, N, dist, params, rel);
             log('SRIGH', sol_srigh);

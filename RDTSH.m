@@ -33,7 +33,7 @@ while sum(T) > 0 % loop continues if there is uncovered target
     for i=1:N_cnt
         if s(i) == 0
             O_cover = cover_targets(N(i).position, O, params.S_r);
-            w(i) = sum(O_cover & T) / N(i).Ti;
+            w(i) = sum(O_cover & T) * N(i).Pi;
         end
     end
     % select the sensor with maximum weight in this round

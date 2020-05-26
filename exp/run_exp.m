@@ -89,7 +89,7 @@ iter = 40;
 
 % Call exp functions
 % Subtest 1: various number of targets
-N_o_list = [50, 75, 100, 125, 150, 175];
+N_o_list = 50; %[50, 75, 100, 125, 150, 175];
 res_target_l = [];
 for i=1:length(N_o_list)
     fprintf('Running large target exp with %d targets\n', N_o_list(i));
