@@ -74,8 +74,8 @@ for j = 0:N_y-1
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature distribution in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 2.0;
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 2.0;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 3.0;
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 3.0;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
     end
 end
@@ -147,20 +147,7 @@ end
 
 % Call the CPLEX solver
 if run.cplex
-    % solve the problem without SoH and MTTF constraints
     try
-        rel.SoH = false; rel.MTTF = false;
-        tic
-        sol_wo = solver(N, O, dist, params, rel);
-        sol_wo.time = toc;
-        % plot the solution
-        if sol_wo.exitflag == 1
-            %plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
-            [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
-                rel_check(sol_wo, N, dist, params, rel);
-            log('OPT_wo', sol_wo);
-        end
-        
         % solve the problem with SoH and MTTF constraints
         rel.SoH = true; rel.MTTF = true;
         tic
@@ -172,6 +159,18 @@ if run.cplex
             [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
                 rel_check(sol_w, N, dist, params, rel);
             log('OPT', sol_w);
+        end
+        % solve the problem without SoH and MTTF constraints
+        rel.SoH = false; rel.MTTF = false;
+        tic
+        sol_wo = solver(N, O, dist, params, rel);
+        sol_wo.time = toc;
+        % plot the solution
+        if sol_wo.exitflag == 1
+            %plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
+            [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
+                rel_check(sol_wo, N, dist, params, rel);
+            log('OPT_wo', sol_wo);
         end
     catch
         fprintf('No feasible solution from CPLEX!\n');
