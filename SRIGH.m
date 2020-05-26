@@ -183,8 +183,6 @@ while sum(T_prime) > 0
     for i = 1:(size(P_s, 2)-1)
         O_i = P_s(i);
         O_j = P_s(i + 1);
-        % add the node into the selected node set
-        %x(O_i) = 1;
         
         % add the newly-selected node in Fij/FiB
         if O_j <= Cparams.M % sending to another grid
@@ -223,30 +221,6 @@ res.x = x;
 res.fiB = fiB;
 res.exitflag = 1;
 end
-
-%% get the set of sensors which can cover some targets
-% O: deployment sites
-% T: target sites
-% S_r: sensing radius
-%
-% eff_s: the binary vector containing the info of whether a site at which 
-%        placing a sensor could cover some targets
-% function eff_s = get_efficient_sensors(O, T, S_r, M, N)
-%     eff_s = zeros(1, M);
-%     % for each sensor, traverse each target and get the distance between
-%     % the two
-%     for i = 1:M
-%         for j = 1:N
-%             d = norm(O(i).position - T(j, :));  % get the distance
-%             % update eff_s if needed
-%             if d <= S_r
-%                 eff_s(i) = 1;
-%                 break
-%             end
-%         end
-%     end
-% end
-
 %% create the network graph
 % Args:
 %   cost: cost vector of adding a solar panel
@@ -306,16 +280,3 @@ for j=1:N_o
     end
 end
 end
-
-% %% get the set of targets that could be covered by the sensor
-% % targets: the binary vector from matrix o_cover containing information of
-% % whether the target could be covered by the corresponding sensor
-% function T_i = get_targets(targets)
-%     T_i = [];
-%     % traverse the target set
-%     for j = 1:size(targets,2)
-%         if(targets(j) == 1)
-%             T_i  = [T_i j];
-%         end
-%     end
-% end
