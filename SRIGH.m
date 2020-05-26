@@ -215,7 +215,7 @@ while size(T_prime, 1) ~= 0
                     % get the start point
                     % arc: <startpoint, O_i>
                     startpoint = edges(i, 1);
-                    weight = cost(O_i);
+                    weight = sparams.w1 + cost(O_i);
                     
                     % update the edge
                     G = rmedge(G, startpoint, O_i);
