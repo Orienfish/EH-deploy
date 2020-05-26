@@ -16,6 +16,7 @@ The `tutorial.m` will walk you through all of our algorithms on the small datase
 .
 ├── LICENSE
 ├── README.md     // this file
+├── exp           // scripts to run experiments
 ├── solardata     // real-world dataset from the National Solar Radiation Database
 ├── libs          // general library
 ├── lldistkm      // distance calculation library from FileExchange
