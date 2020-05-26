@@ -253,11 +253,19 @@ if run.srigh
 end
 
 % fill in result struct
-res.sol_wo = sol_wo;
-res.sol_w = sol_w;
-res.sol_rdtsh = sol_rdtsh;
-res.sol_tsh = sol_tsh;
-res.sol_srigh = sol_srigh;
+if run.cplex
+    res.sol_wo = sol_wo;
+    res.sol_w = sol_w;
+end
+if run.rdtsh
+    res.sol_rdtsh = sol_rdtsh;
+end
+if run.tsh
+    res.sol_tsh = sol_tsh;
+end
+if run.srigh
+    res.sol_srigh = sol_srigh;
+end
 % end of exp func
 end
 

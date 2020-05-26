@@ -57,23 +57,22 @@ iter = 40;
 %writetable(res_target_s, './res_target_small.csv');
 
 % Subtest 2: various number of sites
-N_x_list = [13, 14]; %[9, 10, 11, 12, 13, 14];
-res_site_s = [];
-for i=1:length(N_x_list)
-    fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
-    for j=1:iter
-        fprintf('iter %d\n', j);
-        exp_opt.N_x = N_x_list(i);
-        res = exp_func(run, exp_opt);
-        while isempty(res)
-            res = exp_func(run, exp_opt);
-        end
-        res_site_s = [res_site_s; fill_resT(res, run)];
-    end
-end
-exp_opt.N_x = 10;
-writetable(res_site_s, './res_site_small.csv');
-stop
+%N_x_list = [9, 10, 11, 12, 13];
+%res_site_s = [];
+%for i=1:length(N_x_list)
+%    fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
+%    for j=1:iter
+%        fprintf('iter %d\n', j);
+%        exp_opt.N_x = N_x_list(i);
+%        res = exp_func(run, exp_opt);
+%        while isempty(res)
+%            res = exp_func(run, exp_opt);
+%        end
+%        res_site_s = [res_site_s; fill_resT(res, run)];
+%    end
+%end
+%exp_opt.N_x = 10;
+%writetable(res_site_s, './res_site_small.csv');
 
 %% Experiment 2: large scale simulation
 run.cplex = false;
