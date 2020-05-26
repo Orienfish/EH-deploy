@@ -209,13 +209,13 @@ while size(T_prime, 1) ~= 0
             U = [U O_i];
             
             % update weight
-            for i = 1:size(endpoints, 1)
+            for j = 1:size(endpoints, 1)
                 % endpoint is O_i
                 if (endpoints(i) == O_i)
                     % get the start point
                     % arc: <startpoint, O_i>
                     startpoint = edges(i, 1);
-                    weight = sparams.w2 + cost(O_i);
+                    weight = cost(O_i);
                     
                     % update the edge
                     G = rmedge(G, startpoint, O_i);
