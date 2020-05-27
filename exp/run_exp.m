@@ -54,7 +54,7 @@ for i=1:length(N_o_list)
     end
 end
 exp_opt.N_o = 20;                       % reset to standard value
-writetable(res_target_s, './res_target_small.csv');
+writetable(res_target_s, './res_target_small_new.csv');
 
 % Subtest 2: various number of sites
 N_x_list = [9, 10, 11, 12, 13];
@@ -72,7 +72,7 @@ for i=1:length(N_x_list)
     end
 end
 exp_opt.N_x = 10;
-writetable(res_site_s, './res_site_small.csv');
+writetable(res_site_s, './res_site_small_new.csv');
 
 %% Experiment 2: large scale simulation
 %run.cplex = false;
