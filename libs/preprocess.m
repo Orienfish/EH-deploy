@@ -83,12 +83,15 @@ for f_idx = 1:length(f_list)
     curCenters = 0.5 * (curEdges(1:N_bin) + curEdges(2:N_bin+1));
     Counts(f_idx, :) = curCounts ./ dataT.temp_cnt(f_idx);
     Centers(f_idx, :) = curCenters;
-    plot(curCenters, curCounts);
-    hold on;
+    % only plot part of the cdfs
+    if mod(f_idx, 21) == 0
+        cdfplot(T.Temperature);
+        hold on;
+    end
 end
 ax = gca; ax.FontSize=16;
 xlim([0, 40]);
-xlabel('Temperature (°C)'); ylabel('Data Counts');
+xlabel('Temperature (°C)'); ylabel('Cumulative Probability');
 % save all data to the designated files
 writetable(dataT, dataT_sav(1));
 writematrix(Counts, dataT_sav(2));
