@@ -184,14 +184,6 @@ while sum(T_prime) > 0
         O_i = P_s(i);
         O_j = P_s(i + 1);
         
-        % add the newly-selected node in Fij/FiB
-        if O_j <= Cparams.M % sending to another grid
-            fij_idx = (O_i - 1) * Cparams.M + O_j;
-            fij(fij_idx) = fij(fij_idx) + Cparams.eta * Cparams.G;
-        else % sending to the sink
-            fiB(O_i) = fiB(O_i) + Cparams.eta * Cparams.G;
-        end
-        
         % if O_i is not in the "selected node" set, then need to add it in
         % and update the graph weight
         if x(O_i) == 0
@@ -214,12 +206,42 @@ while sum(T_prime) > 0
     end
 end
 
+%% stage 5: update the flow matrices
+% find the shortest path from all selected sensors to the sink
+senidx = find(s > 0); % get the indexes of selected sensors
+SP = shortestpathtree(G, senidx, Cparams.M+1);
+% extract the [st, ed] nodes pair in the shortest path
+pair = reshape(SP.Edges.EndNodes(:), [], 2);
+for i=1:size(pair, 1)
+    st = pair(i, 1); ed = pair(i, 2);
+    x(st) = 1; % update relay node placement
+    % update flow matrix
+    if ed <= Cparams.M % sending to another grid
+        fij_idx = (st-1) * Cparams.M + ed;
+        fij(fij_idx) = fij(fij_idx) + Cparams.eta * Cparams.G;
+    else % sending to the sink
+        fiB(st) = fiB(st) + Cparams.eta * Cparams.G;
+    end
+end
+
 res.fval = sum(x);
 res.s = s;
 res.fij = fij;
 res.x = x;
 res.fiB = fiB;
 res.exitflag = 1;
+
+% for i = 1:size(fij,1)
+%     if fij(i) ~= 0
+%         fprintf("index: %d, value: %f\n", i, fij(i));
+%     end
+% end
+% fprintf("\n");
+% for i = 1:size(fiB,1)
+%     if fiB(i) ~= 0
+%         fprintf("index: %d, value: %f\n", i, fiB(i));
+%     end
+% end
 end
 %% create the network graph
 % Args:
