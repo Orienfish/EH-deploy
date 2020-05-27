@@ -230,18 +230,6 @@ res.fij = fij;
 res.x = x;
 res.fiB = fiB;
 res.exitflag = 1;
-
-% for i = 1:size(fij,1)
-%     if fij(i) ~= 0
-%         fprintf("index: %d, value: %f\n", i, fij(i));
-%     end
-% end
-% fprintf("\n");
-% for i = 1:size(fiB,1)
-%     if fiB(i) ~= 0
-%         fprintf("index: %d, value: %f\n", i, fiB(i));
-%     end
-% end
 end
 %% create the network graph
 % Args:
