@@ -6,8 +6,7 @@
 
 function res = exp_func(run, exp_opt)
 warning('off','all');
-%addpath ('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
-addpath('/home/xiaofan/ibm/ILOG/CPLEX_Studio1210/cplex/matlab/x86-64_linux');
+addpath ('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
 addpath('../lldistkm');
 addpath('../solver');
 addpath('../libs');
