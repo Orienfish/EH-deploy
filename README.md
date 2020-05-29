@@ -6,9 +6,9 @@ Reliability-Driven Deployment in Energy-Harvesting Sensor Networks.
 
 Test environment: MATLAB R2019b/R2020a.
 
-**Note:** Need [[CPLEX]](https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/pdf/gscplexmatlab.pdf) for Matlab for the optimization solver.
+**Note:** Need [[CPLEX]](https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/pdf/gscplexmatlab.pdf) for MATLAB as the optimization solver.
 
-The `tutorial.m` will walk you through all of our algorithms on the small dataset.
+The `tutorial.m` will walk you through all of our algorithms on the dataset.
 
 ## File Structure
 
@@ -17,24 +17,23 @@ The `tutorial.m` will walk you through all of our algorithms on the small datase
 ├── LICENSE
 ├── README.md     // this file
 ├── exp           // scripts to run experiments
-├── solardata     // real-world dataset from the National Solar Radiation Database
-├── libs          // general library
+├── solardata     // real-world dataset from the National Solar Radiation Database (NSRDB)
+├── libs          // general library for reliability models
 ├── lldistkm      // distance calculation library from FileExchange
-├── solver        // the CPLEX solver
-├── RDTSH.m       // our purposed heuristic, Reliability-Driven Two-StageHeuristic
-├── SRIGH.m       // Sensing- and Routing- Integrated Greedy Heuristic
-├── TSH.m         // Two-Stage Heuristic
-└── tutorial.m
+├── solver        // the matlab script to call the CPLEX solver
+├── alg			      // our purposed heuristic, Reliability-Driven Two-StageHeuristic
+└── tutorial.m    // example usage
 ```
 
 ## Available Algorithms
 
-* Reliability-Driven Two-StageHeuristic (RDTSH).
-* Sensing- and Routing- Integrated Greedy Heuristic (SRIGH).
-* Two-Stage Heuristic (TSH).
+Currently we have the following heuristics under the `./alg/` directory. 
 
-For all of the three algorithms, we devise the power model for our sensor deployment problem in `./solver/power_eno.m`.
+* Reliability-Driven Two-Stage Heuristic (RDTSH) [our proposed heuristic]. 
+* Two-Stage Heuristic (TSH) [[Zhu et al. 2018]](https://ieeexplore.ieee.org/abstract/document/8345168).
+* Sensing- and Routing- Integrated Greedy Heuristic (SRIGH) [[Zhu et al. 2018]](https://ieeexplore.ieee.org/abstract/document/8345168).
 
 ## License
 
 MIT
+
