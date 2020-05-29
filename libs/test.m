@@ -58,18 +58,17 @@ SoHref = 0.8;
 T = 5;
 Ti = linspace(0, 40, 41);
 P_sohi = Psoh_bound_Tavg(SoHref, T, Ti);
-figure('Position', [0 0 300 300]);
-plot(Ti, P_sohi, '-*');
-xlabel('Ambient Temperature (°C)'); ylabel('Power Bound (W)');
-%title('Power bound (W) various temperature');
-hold on;
 MTTFref = 0.8;
 P_mttfi = Pmttf_bound_Tavg(MTTFref, Ti);
-%figure;
-plot(Ti, P_mttfi, '-^');
+
+figure('Position', [0 0 300 300]);
+plot(Ti, P_sohi, '-*', 'LineWidth', 1);
+hold on;
+plot(Ti, P_mttfi, '-^', 'LineWidth', 1);
+xlabel('Ambient Temperature (°C)'); ylabel('Power Bound (W)');
 legend({'SoH Constraint', 'MTTF Constraint'}, 'FontSize', 16);
 ax = gca; ax.FontSize = 16;
-%title('Power bound (W) from MTTF at various temperature');
+title('Power bound (W) from SoH and MTTF at various temperature');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,18 +83,41 @@ P_sohr = zeros(nref, 1);
 for i=1:nref
     P_sohr(i) = Psoh_bound_Tavg(SoHref(i), T, Tamb);
 end
-figure('Position', [0 0 300 300]);
-plot(SoHref, P_sohr, '-*');
-%title('Power bound (W) from SoH at various SoHref');
-xlabel('Target'); ylabel('Power Bound (W)');
-hold on;
+
 MTTFref = linspace(0.6, 0.9, nref);
 P_mttfr = zeros(nref, 1);
 for i=1:nref
     P_mttfr(i) = Pmttf_bound_Tavg(MTTFref(i), Tamb);
 end
-%figure;
-plot(MTTFref, P_mttfr, '-^');
+
+figure('Position', [0 0 300 300]);
+plot(SoHref, P_sohr, '-*', 'LineWidth', 1);
+hold on;
+plot(MTTFref, P_mttfr, '-^', 'LineWidth', 1);
+xlabel('Target'); ylabel('Power Bound (W)');
 legend({'SoH Constraint', 'MTTF Constraint'}, 'FontSize', 16);
 ax = gca; ax.FontSize = 16;
-%title('Power bound (W) from MTTF at various MTTFref');
+title('Power bound (W) from SoH and MTTF at various ref. value');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Compare single-use batteries and rechargable batteries
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+nDay = 301;
+Day = linspace(0, 600, nDay);
+Tamb = 32; pwr = 0.1;
+Tcell = amb2core(Tamb, pwr);
+y0 = 1000;  % 1000 mAh
+I = 10;     % mA
+bsoh = zeros(nDay, 1);
+bsoc = zeros(nDay, 1);
+for i=1:nDay
+    bsoc(i) = soc(y0, Tamb, I, Day(i));
+    bsoh(i) = soh(Tcell, Day(i) / 365);
+end
+figure('Position', [0 0 400 300]);
+plot(Day, bsoc, '-s', 'Linewidth', 1);
+hold on;
+plot(Day, bsoh, '-*', 'Linewidth', 1);
+legend({'SoC of single-use battery', 'SoH of rechargeable battery'}, 'FontSize', 16, 'Location', 'southeast');
+ylim([0, 1.1]); xlabel('Elapsed Time (day)'); ylabel('Battery Status');
+ax = gca; ax.FontSize = 16;
