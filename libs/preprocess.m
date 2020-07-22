@@ -84,9 +84,9 @@ for f_idx = 1:length(f_list)
     Counts(f_idx, :) = curCounts ./ dataT.temp_cnt(f_idx);
     Centers(f_idx, :) = curCenters;
     % only plot part of the cdfs
-    if mod(f_idx, 21) == 0
+    if mod(f_idx, 80) == 0
         h = cdfplot(T.Temperature);
-        set(h, 'LineWidth', 1.5);
+        set(h, 'LineWidth', 2);
         hold on;
     end
 end

@@ -29,7 +29,7 @@ end
 
 % get data source distribution
 bubbleplot_wsize(dataT.lat, dataT.lon, dataT.temp_avg, 'data source temp');
-bubbleplot_wsize(dataT.lat, dataT.lon, dataT.dni_avg, 'data source dni');
+bubbleplot_wsize(dataT.lat, dataT.lon, dataT.dni_avg, 'data source dni'); 
 origin = [min(dataT.lat), min(dataT.lon)];
 %yScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [max(dataT.lat), min(dataT.lon)]);
 %xScalekm = lldistkm([min(dataT.lat), min(dataT.lon)], [min(dataT.lat), max(dataT.lon)]);
@@ -106,10 +106,10 @@ dist = getDist(N, c);
 
 % specify the reliability options and targets
 rel.SoH = true;
-rel.SoHref = 0.90;
+rel.SoHref = 0.89;
 rel.T = 5;                              % years
 rel.MTTF = true;
-rel.MTTFref = 0.90;
+rel.MTTFref = 0.89;
 
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
