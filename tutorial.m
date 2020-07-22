@@ -37,8 +37,8 @@ origin = [min(dataT.lat), min(dataT.lon)];
 % set the size and granularity of the grid space
 xScalem = 1000;    % m
 yScalem = 1000;    % m
-N_x = 10;
-N_y = 10;
+N_x = 20;
+N_y = 20;
 N_cnt = N_x * N_y;      % number of grid points
 Unit_x = floor(xScalem / (N_x - 1));
 Unit_y = floor(yScalem / (N_y - 1));
@@ -106,10 +106,10 @@ dist = getDist(N, c);
 
 % specify the reliability options and targets
 rel.SoH = true;
-rel.SoHref = 0.89;
-rel.T = 5;                              % years
+rel.SoHref = 0.9;
+rel.T = 4;                              % years
 rel.MTTF = true;
-rel.MTTFref = 0.89;
+rel.MTTFref = 0.90;
 
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
