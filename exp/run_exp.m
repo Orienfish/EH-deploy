@@ -89,40 +89,58 @@ iter = 40;
 
 % Call exp functions
 % Subtest 1: various number of targets
-N_o_list = [50, 75, 100, 125, 150, 175];
-res_target_l = [];
-for i=1:length(N_o_list)
-    fprintf('Running large target exp with %d targets\n', N_o_list(i));
-    for j=1:iter
-        fprintf('iter %d\n', j);
-        exp_opt.N_o = N_o_list(i);
-        res = exp_func(run, exp_opt);
-        while isempty(res)
-            res = exp_func(run, exp_opt);
-        end
-        res_target_l = [res_target_l; fill_resT(res, run)];
-    end
-end
-exp_opt.N_o = 100;                       % reset to standard value
-writetable(res_target_l, './res_target_large.csv');
+%N_o_list = [50, 75, 100, 125, 150, 175];
+%res_target_l = [];
+%for i=1:length(N_o_list)
+%    fprintf('Running large target exp with %d targets\n', N_o_list(i));
+%    for j=1:iter
+%        fprintf('iter %d\n', j);
+%        exp_opt.N_o = N_o_list(i);
+%        res = exp_func(run, exp_opt);
+%        while isempty(res)
+%            res = exp_func(run, exp_opt);
+%        end
+%        res_target_l = [res_target_l; fill_resT(res, run)];
+%    end
+%end
+%exp_opt.N_o = 100;                       % reset to standard value
+%writetable(res_target_l, './res_target_large.csv');
 
 % Subtest 2: various number of sites
-N_x_list = [70, 80, 90, 100, 110, 120];
-res_site_l = [];
-for i=1:length(N_x_list)
-    fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
+%N_x_list = [70, 80, 90, 100, 110, 120];
+%res_site_l = [];
+%for i=1:length(N_x_list)
+%    fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
+%    for j=1:iter
+%        fprintf('iter %d\n', j);
+%        exp_opt.N_x = N_x_list(i);
+%        res = exp_func(run, exp_opt);
+%        while isempty(res)
+%            res = exp_func(run, exp_opt);
+%        end
+%        res_site_l = [res_site_l; fill_resT(res, run)];
+%    end
+%end
+%exp_opt.N_x = 100;
+%writetable(res_site_l, './res_site_large.csv');
+
+% Subtest 3: various coverage level
+k_list = [1, 2, 3];
+res_k_l = [];
+for i=1:length(k_list)
+    fprintf('Running large site exp with coverage level %d\n', k_list(i));
     for j=1:iter
         fprintf('iter %d\n', j);
-        exp_opt.N_x = N_x_list(i);
+        exp_opt.K = k_list(i);
         res = exp_func(run, exp_opt);
         while isempty(res)
             res = exp_func(run, exp_opt);
         end
-        res_site_l = [res_site_l; fill_resT(res, run)];
+        res_k_l = [res_k_l; fill_resT(res, run)];
     end
 end
-exp_opt.N_x = 100;
-writetable(res_site_l, './res_site_large.csv');
+exp_opt.K = 2;
+writetable(res_k_l, './res_cover_large.csv');
 
 %% Appendix functions
 % Fill in result table from the result struct
