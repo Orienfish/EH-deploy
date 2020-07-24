@@ -89,22 +89,22 @@ iter = 40;
 
 % Call exp functions
 % Subtest 1: various number of targets
-%N_o_list = [50, 75, 100, 125, 150, 175];
-%res_target_l = [];
-%for i=1:length(N_o_list)
-%    fprintf('Running large target exp with %d targets\n', N_o_list(i));
-%    for j=1:iter
-%        fprintf('iter %d\n', j);
-%        exp_opt.N_o = N_o_list(i);
-%        res = exp_func(run, exp_opt);
-%        while isempty(res)
-%            res = exp_func(run, exp_opt);
-%        end
-%        res_target_l = [res_target_l; fill_resT(res, run)];
-%    end
-%end
-%exp_opt.N_o = 100;                       % reset to standard value
-%writetable(res_target_l, './res_target_large.csv');
+N_o_list = [50, 75, 100, 125, 150, 175];
+res_target_l = [];
+for i=1:length(N_o_list)
+    fprintf('Running large target exp with %d targets\n', N_o_list(i));
+    for j=1:iter
+        fprintf('iter %d\n', j);
+        exp_opt.N_o = N_o_list(i);
+        res = exp_func(run, exp_opt);
+        while isempty(res)
+            res = exp_func(run, exp_opt);
+        end
+        res_target_l = [res_target_l; fill_resT(res, run)];
+    end
+end
+exp_opt.N_o = 100;                       % reset to standard value
+writetable(res_target_l, './res_target_large.csv');
 
 % Subtest 2: various number of sites
 %N_x_list = [70, 80, 90, 100, 110, 120];

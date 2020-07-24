@@ -75,8 +75,8 @@ for j = 0:N_y-1
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature distribution in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 3.0;
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 3.0;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :);
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
     end
 end
