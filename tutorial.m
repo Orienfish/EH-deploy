@@ -135,9 +135,9 @@ end
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = true;
-run.rdtsh = true;
-run.tsh = true;
+run.cplex = false;
+run.rdtsh = false;
+run.tsh = false;
 run.srigh = true;
 
 % Call the CPLEX solver
@@ -227,6 +227,7 @@ if run.srigh
         Cparams.N = params.N_o;
         Cparams.M = N_cnt;
         Cparams.dist = dist;
+        Cparams.c = c;
 
         sparams.w1 = 100;      % cost for adding a new node
         sparams.w2 = 2000;     % cost for adding per area of solar panel
