@@ -5,7 +5,7 @@
 %   dni: average dni at the location
 %
 % Return:
-%   SoH: estimated SoH at reference temperature of 25 Celsius
+%   xi: estimated solar panel's conversion efficiency at the location
 
 function [xi] = eff(Tamb, A, dni)
 % required constants
