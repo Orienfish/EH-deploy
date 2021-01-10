@@ -1,4 +1,4 @@
-%% Convert the lower bound on SoH to the upper bound on power usng average
+%% Convert the lower bound on SoH to the upper bound on power using average
 %  of ambient temperature.
 % Args:
 %   MTTFref: lower bound target for MTTF, a ratio
