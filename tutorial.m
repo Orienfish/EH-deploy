@@ -154,7 +154,8 @@ if run.cplex
         sol_wo.time = toc;
         % plot the solution
         if sol_wo.exitflag == 1
-            plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_wo, params.S_r, ...
+                [xScalem, yScalem], 'CPLEX w/o Rel');
             [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
                 rel_check(sol_wo, N, dist, params, rel);
             log('OPT_wo', sol_wo);
@@ -167,7 +168,8 @@ if run.cplex
         sol_w.time = toc;
         % plot the solution
         if sol_w.exitflag == 1
-            plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_w, params.S_r, ...
+                [xScalem, yScalem], 'CPLEX w/ Rel');
             [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
                 rel_check(sol_w, N, dist, params, rel);
             log('OPT', sol_w);
@@ -189,7 +191,8 @@ if run.rdtsh
         sol_rdtsh.time = toc;
         % plot the solution
         if sol_rdtsh.exitflag == 1
-            plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_rdtsh, params.S_r, ...
+                [xScalem, yScalem], 'RDTSH');
             [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
                 rel_check(sol_rdtsh, N, dist, params, rel);
             log('RDTSH', sol_rdtsh);
@@ -211,7 +214,8 @@ if run.tsh
         sol_tsh.time = toc;
         % plot the solution
         if sol_tsh.exitflag == 1
-            plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_tsh, params.S_r, ...
+                [xScalem, yScalem], 'TSH');
             [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
                 rel_check(sol_tsh, N, dist, params, rel);
             log('TSH', sol_tsh);
@@ -241,7 +245,8 @@ if run.srigh
         sol_srigh = SRIGH(Cparams, sparams);
         sol_srigh.time = toc;
         if sol_srigh.exitflag == 1
-            plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
+            plot_solution(N, O, c, sol_srigh, params.S_r, ...
+                [xScalem, yScalem], 'SRIGH');
             [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
                 rel_check(sol_srigh, N, dist, params, rel);
             log('SRIGH', sol_srigh);
@@ -356,7 +361,7 @@ function plot_temp(N, N_x, N_y)
 end
 
 % plot the solution in the grid space
-function plot_solution(N, O, c, sol, S_r, maxlim)
+function plot_solution(N, O, c, sol, S_r, maxlim, method)
     % intialization
     N_cnt = size(N, 1);  % number of grid locations
 
@@ -410,4 +415,5 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
     xlim([0, maxlim(1)]); ylim([0, maxlim(2)]);
     xlabel('x (m)'); ylabel('y (m)');
     ax = gca; ax.FontSize = 16;
+    title(method);
 end
