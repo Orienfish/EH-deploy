@@ -121,3 +121,17 @@ plot(Day, bsoh, '-*', 'Linewidth', 1);
 legend({'SoC of single-use battery', 'SoH of rechargeable battery'}, 'FontSize', 16, 'Location', 'southeast');
 ylim([0, 1.1]); xlabel('Elapsed Time (day)'); ylabel('Battery Status');
 ax = gca; ax.FontSize = 16;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Test solar panel conversion efficiency
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n_temp = 51;
+Tamb = linspace(0, 50, n_temp); % ambient temperature in Celsius
+xi = zeros(n_temp, 1);
+for i=1:n_temp
+    xi(i) = eff(Tamb(i), 0.01, 300);
+end
+figure;
+plot(Tamb, xi, '-s', 'Linewidth', 1);
+xlabel('Average ambient temperature (Celsius)'); ylabel('Conversion efficiency');
+ax = gca; ax.FontSize = 16;

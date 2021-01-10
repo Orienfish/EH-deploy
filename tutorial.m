@@ -43,7 +43,6 @@ N_cnt = N_x * N_y;      % number of grid points
 Unit_x = floor(xScalem / (N_x - 1));
 Unit_y = floor(yScalem / (N_y - 1));
 A = 0.01;               % surface area (m^2) of solar panel
-xi = 0.05;              % end-to-end conversion efficiency of solar system
 
 % the factor to transform from grid (m) to lat and lon
 % x - longitude, y - latitude
@@ -53,8 +52,9 @@ y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem;
 % generate the grid candidate set N
 % with their x, y coordinates and temperature and DNI
 empty_point.position = [];
-empty_point.Ri = [];
-empty_point.Ti = [];
+empty_point.Ri = [];    % recharging power after efficiency conversion
+empty_point.Ti = [];    % temperature
+empty_point.xi = [];    % end-to-end conversion efficiency
 N = repmat(empty_point, N_cnt, 1);
 
 % project the online dataset to our grid space
@@ -66,13 +66,17 @@ for j = 0:N_y-1
         % find the closest location in dataT
         [minValue, dataT_idx] = min(abs(dataT.lat - y_lat) + ...
             abs(dataT.lon - x_lon));
-        % assign the corresponding recharging power in W
-        % conversion efficiency, solar panel area, w/m2 radiation
-        N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
         % assign the corresponding temperature distribution in Celsius
         N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 4.0;
         N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 4.0;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
+        % assign conversion efficiency according to average temperature
+        N(i + j * N_x + 1).xi = eff(N(i + j * N_x + 1).Ti, A, ...
+            dataT.dni_avg(dataT_idx));
+        % assign the corresponding recharging power in W
+        % conversion efficiency, solar panel area, w/m2 radiation
+        N(i + j * N_x + 1).Ri = N(i + j * N_x + 1).xi * A * ...
+            dataT.dni_avg(dataT_idx);
     end
 end
 % plot the heatmap of temperature distribution in the grid map
