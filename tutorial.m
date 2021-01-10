@@ -55,6 +55,7 @@ empty_point.position = [];
 empty_point.Ri = [];    % recharging power after efficiency conversion
 empty_point.Ti = [];    % temperature
 empty_point.xi = [];    % end-to-end conversion efficiency
+empty_point.MTTFi = []; % MTTF of solar panel in ratio
 N = repmat(empty_point, N_cnt, 1);
 
 % project the online dataset to our grid space
@@ -77,6 +78,8 @@ for j = 0:N_y-1
         % conversion efficiency, solar panel area, w/m2 radiation
         N(i + j * N_x + 1).Ri = N(i + j * N_x + 1).xi * A * ...
             dataT.dni_avg(dataT_idx);
+        % compute the expectation of MTTF of solar panel in ratio
+        N(i + j * N_x + 1).MTTFi = mttf_solar(N(i + j * N_x + 1));
     end
 end
 % plot the heatmap of temperature distribution in the grid map
@@ -101,12 +104,6 @@ for i = 1:params.N_o
     O(i, 1) = unifrnd(0, xScalem);
     O(i, 2) = unifrnd(0, yScalem);
 end
-% randomly generate the location of the sink
-c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
-% get the distance matrix
-% dist(i, j) denotes the Euclidean distance between grid i and j
-% dist(i, N_cnt+1) denotes the Euclidean distance between i and sink
-dist = getDist(N, c);
 
 % specify the reliability options and targets
 rel.SoH = true;
@@ -114,6 +111,12 @@ rel.SoHref = 0.9;
 rel.T = 4;                              % years
 rel.MTTF = true;
 rel.MTTFref = 0.90;
+rel.MTTFsolarref = 1.33;
+
+% eliminate the positions that violate the solar panel reliability bound
+MTTFi = vertcat(N(:).MTTFi);
+N = N(MTTFi > rel.MTTFsolarref);
+N_cnt = size(N, 1);
 
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
@@ -136,6 +139,13 @@ Pi = min(Pi, [], 2); % get the column vector of min of each row
 for i = 1:N_cnt
     N(i).Pi = Pi(i); % clip the power constraints to grid struct
 end
+
+% randomly generate the location of the sink
+c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
+% get the distance matrix
+% dist(i, j) denotes the Euclidean distance between grid i and j
+% dist(i, N_cnt+1) denotes the Euclidean distance between i and sink
+dist = getDist(N, c);
 
 %% Call solvers
 % options to run which solver/algorithm
