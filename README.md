@@ -1,6 +1,6 @@
 # EH-deploy
 
-Reliability-Driven Deployment in Energy-Harvesting Sensor Networks.
+[CNSM 2020] Reliability-Driven Deployment in Energy-Harvesting Sensor Networks.
 
 ## Getting Started
 
