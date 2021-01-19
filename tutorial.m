@@ -491,8 +491,8 @@ function export_solution(N, c, sol, dist, dataT, method)
     end
     fclose(fileID);
     
-    % export the distance matrix
-    filename = sprintf('res/dist_%d_%s.txt', floor(sol.fval), method);
+    % export the transmission power matrix
+    filename = sprintf('res/ptx_%d_%s.txt', floor(sol.fval), method);
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         % only consider placed nodes
@@ -502,8 +502,13 @@ function export_solution(N, c, sol, dist, dataT, method)
             % add the last flag for node-sink connection
             flag = vertcat(flag, sol.fiB(i) > 0.1);
             dist_array = dist(i, logical(flag));
-            % export the maximum transmission distance
-            fprintf(fileID, '%.2f\n', max(dist_array)); 
+            % compute the max transmission distance
+            if size(dist_array, 1) > 0
+                % export the max transmission power of each placed node
+                fprintf(fileID, '%.2f\n', getPtx(max(dist_array)));
+            else
+                fprintf('dist_array is empty!\n'); dist_array
+            end
         end
     end
     fclose(fileID);
