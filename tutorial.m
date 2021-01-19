@@ -170,7 +170,9 @@ if run.cplex
         [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
             rel_check(sol_wo, N, dist, params, rel);
         log('OPT_wo', sol_wo);
-        export_solution(N, c, sol_wo, dataT, 'OPT_wo');
+        export_solution(N, c, sol_wo, dist, dataT, 'OPT_wo');
+    else
+        fprintf('No feasible solution for OPT_wo!\n');
     end
     res.sol_wo = sol_wo;
     % solve the problem with SoH and MTTF constraints
@@ -185,7 +187,9 @@ if run.cplex
         [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
             rel_check(sol_w, N, dist, params, rel);
         log('OPT', sol_w);
-        export_solution(N, c, sol_w, dataT, 'OPT');
+        export_solution(N, c, sol_w, dist, dataT, 'OPT');
+    else
+        fprintf('No feasible solution for OPT_w!\n');    
     end
     res.sol_w = sol_w;
 end
@@ -205,7 +209,9 @@ if run.rdtsh
         [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
             rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
-        export_solution(N, c, sol_rdtsh, dataT, 'RDTSH');
+        export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
+    else
+        fprintf('No feasible solution for RDTSH!\n');
     end
     res.sol_rdtsh = sol_rdtsh;  
 end
@@ -225,7 +231,9 @@ if run.tsh
         [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
             rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
-        export_solution(N, c, sol_tsh, dataT, 'TSH');
+        export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
+    else
+        fprintf('No feasible solution for TSH!\n');
     end
     res.sol_tsh = sol_tsh;
 end
@@ -253,7 +261,9 @@ if run.srigh
         [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
             rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dataT, 'SRIGH');
+        export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
+    else
+        fprintf('No feasible solution for SRIGH!\n');
     end
     res.sol_srigh = sol_srigh;
 end
@@ -420,7 +430,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim, method)
 end
 
 % export the solution to text file
-function export_solution(N, c, sol, dataT, method)
+function export_solution(N, c, sol, dist, dataT, method)
     N_cnt = size(N, 1);         % get number of grid locations
     
     % create one result folder if it doesn't exist
@@ -477,6 +487,23 @@ function export_solution(N, c, sol, dataT, method)
             end
             % export flow to the sink
             fprintf(fileID, '%.2f\n', sol.fiB(i)); 
+        end
+    end
+    fclose(fileID);
+    
+    % export the distance matrix
+    filename = sprintf('res/dist_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    for i=1:N_cnt
+        % only consider placed nodes
+        if sol.x(i)
+            fij_array = sol.fij((i-1)*N_cnt+1 : i*N_cnt);
+            flag = (fij_array > 0.1);
+            % add the last flag for node-sink connection
+            flag = vertcat(flag, sol.fiB(i) > 0.1);
+            dist_array = dist(i, logical(flag));
+            % export the maximum transmission distance
+            fprintf(fileID, '%.2f\n', max(dist_array)); 
         end
     end
     fclose(fileID);
