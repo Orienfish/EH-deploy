@@ -23,6 +23,19 @@ end
 title('Core temperature (Celsius) at various temperature');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% test transmission power consumption under different distance
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n_dist = 41;
+dist = linspace(0, 200, n_dist);
+Ptx = zeros(1, n_dist);
+for i = 1:n_dist
+    Ptx(i) = getPtx(dist(i));
+end
+figure;
+plot(dist, Ptx);
+title('Average transmission power under various distance');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % test MTTF under various core temperature
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 n_temp = 51;
