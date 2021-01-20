@@ -88,7 +88,7 @@ end
 plot_temp(N, N_x, N_y);
 
 %% Initialization of basic parameters
-fprintf('Intializing basic parameters...\n');
+fprintf('Initializing basic parameters...\n');
 params.S_r = 120;                       % sensing range in m
 params.C_r = 150;                       % communication range in m
 params.N_o = 15;                        % number of PoIs
@@ -496,19 +496,16 @@ function export_solution(N, c, sol, dist, dataT, method)
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         % only consider placed nodes
-        if sol.x(i)
+        if sol.x(i) > 0.5
             fij_array = sol.fij((i-1)*N_cnt+1 : i*N_cnt);
-            flag = (fij_array > 0.1);
+            flag = (fij_array > 0.5);
             % add the last flag for node-sink connection
-            flag = vertcat(flag, sol.fiB(i) > 0.1);
+            flag = vertcat(flag, sol.fiB(i) > 0.5);
             dist_array = dist(i, logical(flag));
             % compute the max transmission distance
-            if size(dist_array, 1) > 0
-                % export the max transmission power of each placed node
-                fprintf(fileID, '%.2f\n', getPtx(max(dist_array)));
-            else
-                fprintf('dist_array is empty!\n'); dist_array
-            end
+            % export the max transmission power of each placed node
+            [max_dist, max_idx] = max(dist_array);
+            fprintf(fileID, '%.2f\n', getPtx(max_dist));
         end
     end
     fclose(fileID);

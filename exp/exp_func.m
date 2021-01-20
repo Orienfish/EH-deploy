@@ -58,8 +58,10 @@ y_transform = (max(dataT.lat) - min(dataT.lat)) / yScalem;
 % generate the grid candidate set N
 % with their x, y coordinates and temperature and DNI
 empty_point.position = [];
-empty_point.Ri = [];
-empty_point.Ti = [];
+empty_point.Ri = [];    % recharging power after efficiency conversion
+empty_point.Ti = [];    % temperature
+empty_point.xi = [];    % end-to-end conversion efficiency
+empty_point.MTTFi = []; % MTTF of solar panel in ratio
 N = repmat(empty_point, N_cnt, 1);
 
 % project the online dataset to our grid space
@@ -71,20 +73,28 @@ for j = 0:N_y-1
         % find the closest location in dataT
         [minValue, dataT_idx] = min(abs(dataT.lat - y_lat) + ...
             abs(dataT.lon - x_lon));
+        % memorize the original idx for final exportation
+        N(i + j * N_x + 1).dataT_idx = dataT_idx;
+        % assign the corresponding temperature distribution in Celsius
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 4.0;
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 4.0;
+        N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
+        % assign conversion efficiency according to average temperature
+        N(i + j * N_x + 1).xi = eff(N(i + j * N_x + 1).Ti, A, ...
+            dataT.dni_avg(dataT_idx));
         % assign the corresponding recharging power in W
         % conversion efficiency, solar panel area, w/m2 radiation
-        N(i + j * N_x + 1).Ri = xi * A * dataT.dni_avg(dataT_idx);
-        % assign the corresponding temperature distribution in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx);
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :);
-        N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
+        N(i + j * N_x + 1).Ri = N(i + j * N_x + 1).xi * A * ...
+            dataT.dni_avg(dataT_idx);
+        % compute the expectation of MTTF of solar panel in ratio
+        N(i + j * N_x + 1).MTTFi = mttf_solar(N(i + j * N_x + 1));
     end
 end
 % plot the heatmap of temperature distribution in the grid map
 %plot_temp(N, N_x, N_y);
 
 %% Initialization of basic parameters
-fprintf('Intializing basic parameters...\n');
+fprintf('Initializing basic parameters...\n');
 params.S_r = exp_opt.S_r;               % sensing range in m
 params.C_r = exp_opt.C_r;               % communication range in m
 params.N_o = exp_opt.N_o;               % number of PoIs
@@ -115,7 +125,13 @@ dist = getDist(N, c);
 %rel.T = 5;                              % years
 %rel.MTTF = true;
 %rel.MTTFref = 0.90;
+%rel.MTTFsolarref = 1.33;
 rel = exp_opt.rel;
+
+% eliminate the positions that violate the solar panel reliability bound
+MTTFi = vertcat(N(:).MTTFi);
+N = N(MTTFi > rel.MTTFsolarref);
+N_cnt = size(N, 1);
 
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
@@ -148,109 +164,119 @@ end
 
 % Call the CPLEX solver
 if run.cplex
-    try
-        % solve the problem with SoH and MTTF constraints
-        rel.SoH = true; rel.MTTF = true;
-        tic
-        sol_w = solver(N, O, dist, params, rel);
-        sol_w.time = toc;
-        % plot the solution
-        if sol_w.exitflag == 1
-            %plot_solution(N, O, c, sol_w, params.S_r, [xScalem, yScalem]);
-            [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
-                rel_check(sol_w, N, dist, params, rel);
-            log('OPT', sol_w);
-        end
-        % solve the problem without SoH and MTTF constraints
-        rel.SoH = false; rel.MTTF = false;
-        tic
-        sol_wo = solver(N, O, dist, params, rel);
-        sol_wo.time = toc;
-        % plot the solution
-        if sol_wo.exitflag == 1
-            %plot_solution(N, O, c, sol_wo, params.S_r, [xScalem, yScalem]);
-            [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
-                rel_check(sol_wo, N, dist, params, rel);
-            log('OPT_wo', sol_wo);
-        end
-    catch
-        fprintf('No feasible solution from CPLEX!\n');
+    % solve the problem with SoH and MTTF constraints
+    rel.SoH = true; rel.MTTF = true;
+    tic
+    sol_w = solver(N, O, dist, params, rel);
+    sol_w.time = toc;
+    % plot the solution
+    if sol_w.exitflag == 1
+        %plot_solution(N, O, c, sol_w, params.S_r, ...
+        %    [xScalem, yScalem], 'CPLEX w/ Rel');
+        [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
+            rel_check(sol_w, N, dist, params, rel);
+        log('OPT', sol_w);
+        export_solution(N, c, sol_w, dist, dataT, 'OPT');
+    else
+        fprintf('No feasible solution for OPT_w!\n');
         return;
     end
+    res.sol_w = sol_w;
+    % solve the problem without SoH and MTTF constraints
+    rel.SoH = false; rel.MTTF = false;
+    tic
+    sol_wo = solver(N, O, dist, params, rel);
+    sol_wo.time = toc;
+    % plot the solution
+    if sol_wo.exitflag == 1
+        %plot_solution(N, O, c, sol_wo, params.S_r, ...
+        %    [xScalem, yScalem], 'CPLEX w/o Rel');
+        [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
+            rel_check(sol_wo, N, dist, params, rel);
+        log('OPT_wo', sol_wo);
+        export_solution(N, c, sol_wo, dist, dataT, 'OPT_wo');
+    else
+        fprintf('No feasible solution for OPT_wo!\n');
+        return;
+    end
+    res.sol_wo = sol_wo;
 end
 
 % Call RDTSH
 if run.rdtsh
-    try
-        fprintf('calling RDTSH...\n');
-        tatshparams.w1 = 500;  % weight for placing new node
-        tatshparams.w2 = 800;  % weight for remained power budget
-        tic
-        sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
-        sol_rdtsh.time = toc;
-        % plot the solution
-        if sol_rdtsh.exitflag == 1
-            %plot_solution(N, O, c, sol_rdtsh, params.S_r, [xScalem, yScalem]);
-            [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
-                rel_check(sol_rdtsh, N, dist, params, rel);
-            log('RDTSH', sol_rdtsh);
-        end
-    catch
-        fprintf('No feasible solution from RDTSH!\n');
+    fprintf('calling RDTSH...\n');
+    tatshparams.w1 = 500;  % weight for placing new node
+    tatshparams.w2 = 800;  % weight for remained power budget
+    tic
+    sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
+    sol_rdtsh.time = toc;
+    % plot the solution
+    if sol_rdtsh.exitflag == 1
+        %plot_solution(N, O, c, sol_rdtsh, params.S_r, ...
+        %    [xScalem, yScalem], 'RDTSH');
+        [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
+            rel_check(sol_rdtsh, N, dist, params, rel);
+        log('RDTSH', sol_rdtsh);
+        export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
+    else
+        fprintf('No feasible solution for RDTSH!\n');
         return;
-    end  
+    end
+    res.sol_rdtsh = sol_rdtsh;  
 end
 
 % Call TSH
 if run.tsh
-    try
-        fprintf('calling TSH...\n');
-        tshparams.w1 = 500;     % cost for adding a new node
-        tshparams.w2 = 800;     % cost for adding per area of solar panel
-        tic
-        sol_tsh = TSH(N, O, dist, params, tshparams);
-        sol_tsh.time = toc;
-        % plot the solution
-        if sol_tsh.exitflag == 1
-            %plot_solution(N, O, c, sol_tsh, params.S_r, [xScalem, yScalem]);
-            [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
-                rel_check(sol_tsh, N, dist, params, rel);
-            log('TSH', sol_tsh);
-        end
-    catch
-        fprintf('No feasible solution from TSH!\n');
+    fprintf('calling TSH...\n');
+    tshparams.w1 = 500;     % cost for adding a new node
+    tshparams.w2 = 800;     % cost for adding per area of solar panel
+    tic
+    sol_tsh = TSH(N, O, dist, params, tshparams);
+    sol_tsh.time = toc;
+    % plot the solution
+    if sol_tsh.exitflag == 1
+        %plot_solution(N, O, c, sol_tsh, params.S_r, ...
+        %    [xScalem, yScalem], 'TSH');
+        [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
+            rel_check(sol_tsh, N, dist, params, rel);
+        log('TSH', sol_tsh);
+        export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
+    else
+        fprintf('No feasible solution for TSH!\n');
         return;
     end
+    res.sol_tsh = sol_tsh;
 end
 
 % Call SRIGH
 if run.srigh
-    try
-        fprintf('calling SRIGH...\n');
-        % prepare for calling srigh
-        Cparams = params;
-        Cparams.N = params.N_o;
-        Cparams.M = N_cnt;
-        Cparams.dist = dist;
+    fprintf('calling SRIGH...\n');
+    % prepare for calling srigh
+    Cparams = params;
+    Cparams.N = params.N_o;
+    Cparams.M = N_cnt;
+    Cparams.dist = dist;
 
-        sparams.w1 = 100;      % cost for adding a new node
-        sparams.w2 = 2000;     % cost for adding per area of solar panel
-        sparams.A = A;
-        sparams.O = N;
-        sparams.T = O;
-        tic
-        sol_srigh = SRIGH(Cparams, sparams);
-        sol_srigh.time = toc;
-        if sol_srigh.exitflag == 1
-            %plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
-            [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
-                rel_check(sol_srigh, N, dist, params, rel);
-            log('SRIGH', sol_srigh);
-        end
-    catch
-        fprintf('No feasible solution from SRIGH!\n');
+    sparams.w1 = 100;      % cost for adding a new node
+    sparams.w2 = 2000;     % cost for adding per area of solar panel
+    sparams.A = A;
+    sparams.O = N;
+    sparams.T = O;
+    tic
+    sol_srigh = SRIGH(Cparams, sparams);
+    sol_srigh.time = toc;
+    if sol_srigh.exitflag == 1
+        %plot_solution(N, O, c, sol_srigh, params.S_r, ...
+        %    [xScalem, yScalem], 'SRIGH');
+        [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
+            rel_check(sol_srigh, N, dist, params, rel);
+        log('SRIGH', sol_srigh);
+        export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
+    else
+        fprintf('No feasible solution for SRIGH!\n');
         return;
     end
+    res.sol_srigh = sol_srigh;
 end
 
 % fill in result struct
@@ -372,7 +398,7 @@ function plot_temp(N, N_x, N_y)
 end
 
 % plot the solution in the grid space
-function plot_solution(N, O, c, sol, S_r, maxlim)
+function plot_solution(N, O, c, sol, S_r, maxlim, method)
     % intialization
     N_cnt = size(N, 1);  % number of grid locations
 
@@ -426,4 +452,86 @@ function plot_solution(N, O, c, sol, S_r, maxlim)
     xlim([0, maxlim(1)]); ylim([0, maxlim(2)]);
     xlabel('x (m)'); ylabel('y (m)');
     ax = gca; ax.FontSize = 16;
+    title(method);
+end
+
+% export the solution to text file
+function export_solution(N, c, sol, dist, dataT, method)
+    N_cnt = size(N, 1);         % get number of grid locations
+    
+    % create one result folder if it doesn't exist
+    if ~exist('res', 'dir')
+       mkdir('res')
+    end
+    
+    % export the deployed sensors and corresponding temperature traces
+    % of every 4 hours at the real-world location
+    filename = sprintf('res/sr_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    filetemp = sprintf('res/temp_%d_%s.txt', floor(sol.fval), method);
+    filetempID = fopen(filetemp, 'w');
+    for i=1:N_cnt
+        if sol.x(i)
+            fprintf(fileID, '%.2f %.2f %d\n', N(i).position(1), ...
+                N(i).position(2), sol.s(i));
+            % search for the corresponding original trace file
+            dataT_idx = N(i).dataT_idx;
+            pos_str = sprintf('%.2f_%.2f', dataT.lat(dataT_idx), ...
+                dataT.lon(dataT_idx));
+            folder = '../solardata/';
+            f_list = dir(append(folder, sprintf('*%s*.csv', pos_str)));
+            f_name = f_list(1).name;
+            T = readtable(append(folder, f_name), 'Delimiter', ',', ...
+                'HeaderLines', 2); % jump first two lines
+            array = T.Temperature(~isnan(T.Temperature)); % filter out nan
+            for t_idx=1:floor(size(array, 1)/8)
+                fprintf(filetempID, '%.2f ', mean(array(8*(t_idx-1)+1:8*t_idx)));
+            end
+            fprintf(filetempID, '\n');
+        end
+    end
+    fclose(fileID);
+    fclose(filetempID);
+    
+    % export the deployed sink
+    filename = sprintf('res/gw_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    fprintf(fileID, '%f %f\n', c(1), c(2));
+    fclose(fileID);
+    
+    % export the flow matrix
+    filename = sprintf('res/fl_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    for i=1:N_cnt
+        % export flow to other relay nodes
+        if sol.x(i)
+            for j=1:N_cnt
+                if sol.x(j)
+                    fij_idx = (i-1) * N_cnt + j;
+                    fprintf(fileID, '%.2f ', sol.fij(fij_idx));
+                end
+            end
+            % export flow to the sink
+            fprintf(fileID, '%.2f\n', sol.fiB(i)); 
+        end
+    end
+    fclose(fileID);
+    
+    % export the transmission power matrix
+    filename = sprintf('res/ptx_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    for i=1:N_cnt
+        % only consider placed nodes
+        if sol.x(i) > 0.5
+            fij_array = sol.fij((i-1)*N_cnt+1 : i*N_cnt);
+            flag = (fij_array > 0.5);
+            % add the last flag for node-sink connection
+            flag = vertcat(flag, sol.fiB(i) > 0.5);
+            dist_array = dist(i, logical(flag));
+            % compute the max transmission distance
+            % export the max transmission power of each placed node
+            fprintf(fileID, '%.2f\n', getPtx(max(dist_array)));
+        end
+    end
+    fclose(fileID);
 end
