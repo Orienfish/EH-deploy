@@ -113,7 +113,7 @@ rel.SoHref = 0.9;
 rel.T = 4;                              % years
 rel.MTTF = true;
 rel.MTTFref = 0.90;
-rel.MTTFsolarref = 1.33;
+rel.MTTFsolarref = 1.0; %1.33;
 
 % eliminate the positions that violate the solar panel reliability bound
 MTTFi = vertcat(N(:).MTTFi);

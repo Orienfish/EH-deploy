@@ -48,7 +48,6 @@ N_cnt = N_x * N_y;      % number of grid points
 Unit_x = floor(xScalem / (N_x - 1));
 Unit_y = floor(yScalem / (N_y - 1));
 A = 0.01;               % surface area (m^2) of solar panel
-xi = 0.05;              % end-to-end conversion efficiency of solar system
 
 % the factor to transform from grid (m) to lat and lon
 % x - longitude, y - latitude
