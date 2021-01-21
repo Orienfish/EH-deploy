@@ -24,7 +24,7 @@ The `tutorial.m` will walk you through all of our algorithms on the dataset.
 ├── libs          // general library for reliability models
 ├── lldistkm      // distance calculation library from FileExchange
 ├── solver        // the matlab script to call the CPLEX solver
-├── alg			      // our proposed heuristic, Reliability-Driven Two-StageHeuristic
+├── alg           // our proposed heuristic and baseline heuristics
 └── tutorial.m    // example usage
 ```
 
