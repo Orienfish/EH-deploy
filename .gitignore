@@ -31,3 +31,6 @@ octave-workspace
 # log
 *.txt
 *.log
+
+# compressed dataset
+*.zip
