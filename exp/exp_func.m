@@ -6,7 +6,8 @@
 
 function res = exp_func(run, exp_opt)
 warning('off','all');
-addpath ('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
+%addpath('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
+addpath('~/CPLEX_Studio1210/cplex/matlab/x86-64_linux');
 addpath('../lldistkm');
 addpath('../solver');
 addpath('../libs');
@@ -470,7 +471,7 @@ function export_solution(N, c, sol, dist, dataT, method)
     filetemp = sprintf('res/temp_%d_%s.txt', floor(sol.fval), method);
     filetempID = fopen(filetemp, 'w');
     for i=1:N_cnt
-        if sol.x(i)
+        if sol.x(i) > 0.5
             fprintf(fileID, '%.2f %.2f %d\n', N(i).position(1), ...
                 N(i).position(2), sol.s(i));
             % search for the corresponding original trace file
@@ -503,9 +504,9 @@ function export_solution(N, c, sol, dist, dataT, method)
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         % export flow to other relay nodes
-        if sol.x(i)
+        if sol.x(i) > 0.5
             for j=1:N_cnt
-                if sol.x(j)
+                if sol.x(j) > 0.5
                     fij_idx = (i-1) * N_cnt + j;
                     fprintf(fileID, '%.2f ', sol.fij(fij_idx));
                 end
