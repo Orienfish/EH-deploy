@@ -23,6 +23,19 @@ end
 title('Core temperature (Celsius) at various temperature');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% test transmission power consumption under different distance
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n_dist = 41;
+dist = linspace(0, 200, n_dist);
+Ptx = zeros(1, n_dist);
+for i = 1:n_dist
+    Ptx(i) = getPtx(dist(i));
+end
+figure;
+plot(dist, Ptx);
+title('Average transmission power under various distance');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % test MTTF under various core temperature
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 n_temp = 51;
@@ -121,3 +134,46 @@ plot(Day, bsoh, '-*', 'Linewidth', 1);
 legend({'SoC of single-use battery', 'SoH of rechargeable battery'}, 'FontSize', 16, 'Location', 'southeast');
 ylim([0, 1.1]); xlabel('Elapsed Time (day)'); ylabel('Battery Status');
 ax = gca; ax.FontSize = 16;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Test solar panel conversion efficiency
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n_temp = 51;
+Tamb = linspace(0, 50, n_temp); % ambient temperature in Celsius
+xi = zeros(n_temp, 1);
+for i=1:n_temp
+    xi(i) = eff(Tamb(i), 0.01, 300);
+end
+figure;
+plot(Tamb, xi, '-s', 'Linewidth', 1);
+xlabel('Average ambient temperature (Celsius)'); ylabel('Conversion efficiency');
+ax = gca; ax.FontSize = 16;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Test solar panel MTTF in ratio
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+n_temp = 31;
+Tamb = linspace(20, 50, n_temp); % ambient temperature in Celsius
+MTTFr = zeros(n_temp, 1);
+for i=1:n_temp
+    MTTFr(i) = mttf_solar(Tamb(i));
+end
+figure;
+plot(Tamb, MTTFr, '-s', 'Linewidth', 1);
+xlabel('Average ambient temperature (Celsius)'); ylabel('Solar panel MTTF in ratio');
+ax = gca; ax.FontSize = 16;
+
+% This is the function using single ambient temperature as input
+% while 
+function [MTTFr] = mttf_solar(Tamb)
+% required constants
+Ea = 0.9;           % activation energy in eV
+k = 8.617333e-5;    % Boltzmann constant in eV/K
+Tref = 25 + 273.15; % reference ambient temperature in K
+%N_bin = length(Ni.Tcen);  % number of temperature bins
+
+Tamb = Tamb + 273.15;
+% Compute the expectation of MTTFr
+MTTFr = exp(Ea / k * (1/Tamb - 1/Tref));
+end

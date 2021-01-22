@@ -1,5 +1,4 @@
-function [SoC] = soc(y0, Tc, I, t)
-% Calculate battery stage-of-charge.
+%% Calculate battery stage-of-charge.
 % Args:
 %   y0: total initial capacity in mAh
 %   Tc: ambient temperature in Celsius
@@ -8,6 +7,8 @@ function [SoC] = soc(y0, Tc, I, t)
 % 
 % Return:
 %   SoC: estimated SoC
+
+function [SoC] = soc(y0, Tc, I, t)
 % required constants
 c = 0.56418;
 Ea = 1.1949;

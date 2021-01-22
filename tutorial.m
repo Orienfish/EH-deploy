@@ -220,7 +220,7 @@ end
 
 % Call SRIGH
 if run.srigh
-    try
+%     try
         fprintf('calling SRIGH...\n');
         % prepare for calling srigh
         Cparams = params;
@@ -235,7 +235,7 @@ if run.srigh
         sparams.O = N;
         sparams.T = O;
         tic
-        sol_srigh = SRIGH(Cparams, sparams);
+        sol_srigh = RDSRIGH(Cparams, sparams);
         sol_srigh.time = toc;
         if sol_srigh.exitflag == 1
             plot_solution(N, O, c, sol_srigh, params.S_r, [xScalem, yScalem]);
@@ -244,9 +244,9 @@ if run.srigh
             log('SRIGH', sol_srigh);
         end
         res.sol_srigh = sol_srigh;
-    catch
-        fprintf('No feasible solution from SRIGH!\n');
-    end
+%     catch
+%         fprintf('No feasible solution from SRIGH!\n');
+%     end
 end
 
 

@@ -104,6 +104,10 @@ options.Display = 'Off';
     [], [], [], lb, ub, ctype, x0);
 %output
 
+if size(x, 1) == 0
+    sol.exitflag = 0;
+    return;
+end
 % fill the solution
 sol.fval = fval;
 sol.exitflag = exitflag;
