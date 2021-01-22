@@ -37,7 +37,8 @@ for i = 1:N_cnt
         end
     end
     %fprintf('Final pwr for %d: %f\n', i, 0.5 * (pwr_lb + pwr_ub));
-    P_mttfi(i) = 0.5 * (pwr_lb + pwr_ub);
+    %P_mttfi(i) = 0.5 * (pwr_lb + pwr_ub);
+    P_mttfi(i) = pwr_ub;
 end
 end
 
