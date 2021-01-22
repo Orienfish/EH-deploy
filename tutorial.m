@@ -455,6 +455,12 @@ function export_solution(N, c, sol, dist, dataT, method)
                 dataT.lon(dataT_idx));
             folder = './solardata/';
             f_list = dir(append(folder, sprintf('*%s*.csv', pos_str)));
+            if isempty(f_list)
+                fprintf(['Solution Export Error! No trace file!\n', ...
+                    'Please make sure you download the orignal dataset', ...
+                    'following the README instructions!\n']);
+                return;
+            end
             f_name = f_list(1).name;
             T = readtable(append(folder, f_name), 'Delimiter', ',', ...
                 'HeaderLines', 2); % jump first two lines
