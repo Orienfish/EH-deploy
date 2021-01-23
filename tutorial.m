@@ -152,7 +152,7 @@ dist = getDist(N, c);
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = true;
+run.cplex = false;
 run.rdtsh = true;
 run.tsh = true;
 run.srigh = true;
@@ -238,19 +238,10 @@ end
 % Call SRIGH
 if run.srigh
     fprintf('calling SRIGH...\n');
-    % prepare for calling srigh
-    Cparams = params;
-    Cparams.N = params.N_o;
-    Cparams.M = N_cnt;
-    Cparams.dist = dist;
-
-    sparams.w1 = 100;      % cost for adding a new node
-    sparams.w2 = 2000;     % cost for adding per area of solar panel
-    sparams.A = A;
-    sparams.O = N;
-    sparams.T = O;
+    srighparams.w1 = 500;      % cost for adding a new node
+    srighparams.w2 = 800;     % cost for adding per area of solar panel
     tic
-    sol_srigh = SRIGH(Cparams, sparams);
+    sol_srigh = SRIGH(N, O, dist, params, srighparams);
     sol_srigh.time = toc;
     if sol_srigh.exitflag == 1
         plot_solution(N, O, c, sol_srigh, params.S_r, ...
