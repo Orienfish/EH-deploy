@@ -251,30 +251,19 @@ end
 % Call SRIGH
 if run.srigh
     fprintf('calling SRIGH...\n');
-    % prepare for calling srigh
-    Cparams = params;
-    Cparams.N = params.N_o;
-    Cparams.M = N_cnt;
-    Cparams.dist = dist;
-
-    sparams.w1 = 100;      % cost for adding a new node
-    sparams.w2 = 2000;     % cost for adding per area of solar panel
-    sparams.A = A;
-    sparams.O = N;
-    sparams.T = O;
+    srighparams.w1 = 500;      % cost for adding a new node
+    srighparams.w2 = 800;     % cost for adding per area of solar panel
     tic
-    sol_srigh = SRIGH(Cparams, sparams);
+    sol_srigh = SRIGH(N, O, dist, params, srighparams);
     sol_srigh.time = toc;
     if sol_srigh.exitflag == 1
         %plot_solution(N, O, c, sol_srigh, params.S_r, ...
         %    [xScalem, yScalem], 'SRIGH');
-        [sol_srigh.sohmin, sol_srigh.mttfmin, sol_srigh.vio] = ...
-            rel_check(sol_srigh, N, dist, params, rel);
+        sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
         export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
     else
         fprintf('No feasible solution for SRIGH!\n');
-        return;
     end
     res.sol_srigh = sol_srigh;
 end
@@ -478,7 +467,7 @@ function export_solution(N, c, sol, dist, dataT, method)
             dataT_idx = N(i).dataT_idx;
             pos_str = sprintf('%.2f_%.2f', dataT.lat(dataT_idx), ...
                 dataT.lon(dataT_idx));
-            folder = '../solardata/';
+            folder = './solardata/';
             f_list = dir(append(folder, sprintf('*%s*.csv', pos_str)));
             if isempty(f_list)
                 fprintf(['Solution Export Error! No trace file!\n', ...
@@ -530,13 +519,13 @@ function export_solution(N, c, sol, dist, dataT, method)
         % only consider placed nodes
         if sol.x(i) > 0.5
             fij_array = sol.fij((i-1)*N_cnt+1 : i*N_cnt);
-            flag = (fij_array > 0.5);
             % add the last flag for node-sink connection
-            flag = vertcat(flag, sol.fiB(i) > 0.5);
+            flag = vertcat(fij_array > 0.5, sol.fiB(i) > 0.5);
             dist_array = dist(i, logical(flag));
             % compute the max transmission distance
             % export the max transmission power of each placed node
-            fprintf(fileID, '%.2f\n', getPtx(max(dist_array)));
+            [max_dist, max_idx] = max(dist_array);
+            fprintf(fileID, '%.2f\n', getPtx(max_dist));
         end
     end
     fclose(fileID);

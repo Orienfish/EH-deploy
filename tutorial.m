@@ -491,9 +491,8 @@ function export_solution(N, c, sol, dist, dataT, method)
         % only consider placed nodes
         if sol.x(i) > 0.5
             fij_array = sol.fij((i-1)*N_cnt+1 : i*N_cnt);
-            flag = (fij_array > 0.5);
             % add the last flag for node-sink connection
-            flag = vertcat(flag, sol.fiB(i) > 0.5);
+            flag = vertcat(fij_array > 0.5, sol.fiB(i) > 0.5);
             dist_array = dist(i, logical(flag));
             % compute the max transmission distance
             % export the max transmission power of each placed node
