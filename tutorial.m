@@ -152,7 +152,7 @@ dist = getDist(N, c);
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = false;
+run.cplex = true;
 run.rdtsh = true;
 run.tsh = true;
 run.srigh = true;

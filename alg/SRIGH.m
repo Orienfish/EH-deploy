@@ -96,7 +96,6 @@ while sum(T) > 0
     
     %% stage 3: update sensor placement and unsatisfied coverage 
     % given the new placed sensor
-    fprintf('Place sensor node at %d\n', node_best);
     s(node_best) = 1;
     for j=1:N_o
         if O_cover(node_best, j) > 0
