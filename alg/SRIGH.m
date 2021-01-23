@@ -152,6 +152,8 @@ sol.s = s;
 sol.fij = fij;
 sol.fiB = fiB;
 end
+
+
 %% create the network graph
 % Args:
 %   cost: cost vector of adding a solar panel
