@@ -43,6 +43,7 @@ while sum(T) > 0 % loop continues if there is uncovered target
     % select the sensor with maximum weight in this round
     [maxval, maxidx] = max(w);
     if maxval <= 0 % exist targets cannot be covered, return failure
+        fprintf('There exists targets cannot be covered! Error!');
         sol.exitflag = -1;
         return;
     end
