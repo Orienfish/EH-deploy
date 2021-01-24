@@ -190,8 +190,7 @@ for i=1:N_cnt
         % if connectable, add pair [i, sink] to [st, ed]
         st = [st, i]; ed = [ed, N_cnt+1];
         % update weight from i to sink
-        %weight_iB = w1 + cost(i);
-        weight_iB = 0;
+        weight_iB = srighparams.w1 + srighparams.w2 * cost(i);
         weights = [weights, weight_iB];
     end
 end
