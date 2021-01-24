@@ -4,7 +4,7 @@
 %   O: list of targets to monitor
 %   dist: distance matrix between grid locations and the sink
 %   params: necessary basic parameters
-%   tatshparams: specific parameters for TATSH
+%   rdtshparams: specific parameters for RDTSH
 %
 % Return:
 %   sol.fval: optimal value of the objective function
@@ -14,7 +14,7 @@
 %   sol.fij: float vector of flows between grid locations
 %   sol.fiB: float vector of flows between grid locations and the sink
 
-function sol = RDTSH(N, O, dist, params, tatshparams)
+function sol = RDTSH(N, O, dist, params, rdtshparams)
 % initialization
 N_cnt = size(N, 1);             % number of grid locations
 N_o = size(O, 1);               % number of targets to monitor
@@ -63,7 +63,7 @@ P_cur = params.P0 + params.Es * params.eta * s;  % list of current power
                                                  
 %% stage 2: select relay nodes for the placed sensor one by one
 % create the directed network graph
-G = create_graph(x, P_cur, N, dist, params, tatshparams);
+G = create_graph(x, P_cur, N, dist, params, rdtshparams);
 
 % find the shortest path from all selected sensors to the sink
 senidx = find(s > 0); % get the indexes of selected sensors
@@ -117,12 +117,12 @@ end
 %   N: struct of the grid locations
 %   dist: distance matrix between grid locations and the sink
 %   params: necessary basic parameters
-%   tatshparams: specific parameters for TATSH
+%   rdtshparams: specific parameters for rdtsh
 %
 % Return:
 %   G: the graph for finding shortest path
 
-function G = create_graph(x, P_cur, N, dist, params, tatshparams)
+function G = create_graph(x, P_cur, N, dist, params, rdtshparams)
 N_cnt = size(N, 1);
 st = [];
 ed = [];
@@ -135,10 +135,10 @@ for i=1:N_cnt
             % increased transmission power due to placing relay node at i or j
             P_inc = (getPtx(dist(i, j)) + params.Prx) * params.eta * ...
                 params.G / params.B;
-            weight_ij = tatshparams.w1 * (x(i) == 0) + ...
-                tatshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
-            weight_ji = tatshparams.w1 * (x(j) == 0) + ...
-                tatshparams.w2 * (P_inc/max(1e-10, (N(j).Pi - P_cur(j))));
+            weight_ij = rdtshparams.w1 * (x(i) == 0) + ...
+                rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
+            weight_ji = rdtshparams.w1 * (x(j) == 0) + ...
+                rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
             weights = [weights, weight_ij, weight_ji];
         end
     end
@@ -148,8 +148,8 @@ for i=1:N_cnt
         % increased transmission power due to placing relay node at i
         P_inc = (getPtx(dist(i, N_cnt+1)) + params.Prx) * params.eta * ...
             params.G / params.B;
-        weight_iB = tatshparams.w1 * (x(i) == 1) + ...
-            tatshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
+        weight_iB = rdtshparams.w1 * (x(i) == 1) + ...
+            rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
         weights = [weights, weight_iB];
     end
 end

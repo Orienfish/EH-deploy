@@ -1,10 +1,10 @@
-%% Two-Stage Heuristic from the directional paper
+%% Reliability-Driven Two-Stage Heuristic
 % Args:
 %   N: struct of the grid locations
 %   O: list of targets to monitor
 %   dist: distance matrix between grid locations and the sink
 %   params: necessary basic parameters
-%   tshparams: specific parameters for TSH
+%   rdtshparams: specific parameters for RDTSH
 %
 % Return:
 %   sol.fval: optimal value of the objective function
@@ -14,20 +14,16 @@
 %   sol.fij: float vector of flows between grid locations
 %   sol.fiB: float vector of flows between grid locations and the sink
 
-function sol = TSH(N, O, dist, params, tshparams)
+function sol = RDTSH(N, O, dist, params, rdtshparams)
 % initialization
 N_cnt = size(N, 1);             % number of grid locations
 N_o = size(O, 1);               % number of targets to monitor
 %x = zeros(N_cnt, 1);            % binary vector of node placement
 s = zeros(N_cnt, 1);            % binary vector of sensor placement
-q = repmat(params.K, N_o, 1);   % unsatisfied coverage requirement of each target
+q = repmat(params.K, N_o, 1);   % coverage requirement of each target
 T = ones(N_o, 1);               % binary vector of uncovered targets
 fij = zeros(N_cnt^2, 1);        % flow matrix between grids
 fiB = zeros(N_cnt, 1);          % flow vector to the sink
-
-% the cost vector of adding a solar panel
-cost = (getPtx(params.C_r) + params.Prx) * params.eta * ...
-    params.G / params.B ./ vertcat(N(:).Ri);
 
 %% stage 1: select sensor nodes
 while sum(T) > 0 % loop continues if there is uncovered target
@@ -37,13 +33,12 @@ while sum(T) > 0 % loop continues if there is uncovered target
     for i=1:N_cnt
         if s(i) == 0
             O_cover = cover_targets(N(i).position, O, params.S_r);
-            w(i) = sum(O_cover & T);
+            w(i) = sum(O_cover & T) * N(i).Pi;
         end
     end
     % select the sensor with maximum weight in this round
     [maxval, maxidx] = max(w);
     if maxval <= 0 % exist targets cannot be covered, return failure
-        fprintf('There exist targets cannot be covered! Error!\n');
         sol.exitflag = -1;
         return;
     end
@@ -62,9 +57,13 @@ while sum(T) > 0 % loop continues if there is uncovered target
 end
 x = s;
 
+% calculate the current power Pi for all grid locations
+P_cur = params.P0 + params.Es * params.eta * s;  % list of current power
+                                                 % only sensing
+                                                 
 %% stage 2: select relay nodes for the placed sensor one by one
 % create the directed network graph
-G = create_graph(x, cost, N, dist, params, tshparams);
+G = create_graph(x, P_cur, N, dist, params, rdtshparams);
 
 % find the shortest path from all selected sensors to the sink
 senidx = find(s > 0); % get the indexes of selected sensors
@@ -114,16 +113,16 @@ end
 %% create the network graph
 % Args:
 %   x: binary vector of current node placement
-%   cost: cost vector of adding a solar panel
+%   P_cur: vector of current power at each node
 %   N: struct of the grid locations
 %   dist: distance matrix between grid locations and the sink
 %   params: necessary basic parameters
-%   tshparams: specific parameters for TSH
+%   rdtshparams: specific parameters for rdtsh
 %
 % Return:
 %   G: the graph for finding shortest path
 
-function G = create_graph(x, cost, N, dist, params, tshparams)
+function G = create_graph(x, P_cur, N, dist, params, rdtshparams)
 N_cnt = size(N, 1);
 st = [];
 ed = [];
@@ -133,19 +132,27 @@ for i=1:N_cnt
         if dist(i, j) <= params.C_r
             % if connectable, add pair [i, j] and [j, i] to [st, ed]
             st = [st, i, j]; ed = [ed, j, i];
-            % update weight from i to j and from j to i
-            weight_ij = tshparams.w1 * (x(i) == 0) + ...
-                tshparams.w2 * cost(i);
-            weight_ji = tshparams.w1 * (x(j) == 0) + ...
-                tshparams.w2 * cost(j);
+            % increased transmission power due to placing relay node at i or j
+            P_inc = (getPtx(dist(i, j)) + params.Prx) * params.eta * ...
+                params.G / params.B;
+            weight_ij = rdtshparams.w1 * (x(i) == 0) + ...
+                rdtshparams.w2 * (1/max(1e-10, (N(i).Pi - P_cur(i) - P_inc)));
+                %rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
+            weight_ji = rdtshparams.w1 * (x(j) == 0) + ...
+                rdtshparams.w2 * (1/max(1e-10, (N(j).Pi - P_cur(j) - P_inc)));
+                %rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
             weights = [weights, weight_ij, weight_ji];
         end
     end
     if dist(i, N_cnt+1) <= params.C_r
         % if connectable, add pair [i, sink] to [st, ed]
         st = [st, i]; ed = [ed, N_cnt+1];
-        % update weight from i to sink
-        weight_iB = tshparams.w1 * (x(i) == 1) + tshparams.w2 * cost(i);
+        % increased transmission power due to placing relay node at i
+        P_inc = (getPtx(dist(i, N_cnt+1)) + params.Prx) * params.eta * ...
+            params.G / params.B;
+        weight_iB = rdtshparams.w1 * (x(i) == 1) + ...
+            rdtshparams.w2 * (1/max(1e-10, (N(i).Pi - P_cur(i) - P_inc)));
+            %rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
         weights = [weights, weight_iB];
     end
 end
