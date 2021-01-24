@@ -114,7 +114,7 @@ rel.SoHref = 0.90;
 rel.T = 5;                              % years
 rel.MTTF = true;
 rel.MTTFref = 0.94;
-rel.MTTFsolarref = 1.35;
+rel.MTTFsolarref = 1.33;
 
 % eliminate the positions that violate the solar panel reliability bound
 MTTFi = vertcat(N(:).MTTFi);
@@ -156,6 +156,7 @@ run.cplex = false;
 run.rdtsh = true;
 run.tsh = true;
 run.srigh = true;
+run.rdsrigh = true;
 
 % Call the CPLEX solver
 if run.cplex
@@ -196,10 +197,10 @@ end
 % Call RDTSH
 if run.rdtsh
     fprintf('calling RDTSH...\n');
-    tatshparams.w1 = 1;  % weight for placing new node
-    tatshparams.w2 = 1.3;  % weight for remained power budget
+    rdtshparams.w1 = 1;  % weight for placing new node
+    rdtshparams.w2 = 1.3;  % weight for remained power budget
     tic
-    sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
+    sol_rdtsh = RDTSH(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
     % plot the solution
     if sol_rdtsh.exitflag == 1
@@ -217,10 +218,10 @@ end
 % Call RDTSH trick
 if run.rdtsh
     fprintf('calling RDTSHtrick...\n');
-    tatshparams.w1 = 1;  % weight for placing new node
-    tatshparams.w2 = 1;  % weight for remained power budget
+    rdtshparams.w1 = 1;  % weight for placing new node
+    rdtshparams.w2 = 1;  % weight for remained power budget
     tic
-    sol_rdtsh = RDTSHtrick(N, O, dist, params, tatshparams);
+    sol_rdtsh = RDTSHtrick(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
     % plot the solution
     if sol_rdtsh.exitflag == 1
@@ -256,11 +257,31 @@ if run.tsh
     res.sol_tsh = sol_tsh;
 end
 
+% Call RDSRIGH
+if run.rdsrigh
+    fprintf('calling RDSRIGH...\n');
+    rdsrighparams.w1 = 1;      % cost for adding a new node
+    rdsrighparams.w2 = 1.3;     % cost for adding per area of solar panel
+    tic
+    sol_srigh = RDSRIGH(N, O, dist, params, rdsrighparams);
+    sol_srigh.time = toc;
+    if sol_srigh.exitflag == 1
+        plot_solution(N, O, c, sol_srigh, params.S_r, ...
+            [xScalem, yScalem], 'RDSRIGH');
+        sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
+        log('RDSRIGH', sol_srigh);
+        export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
+    else
+        fprintf('No feasible solution for RDSRIGH!\n');
+    end
+    res.sol_srigh = sol_srigh;
+end
+
 % Call SRIGH
 if run.srigh
     fprintf('calling SRIGH...\n');
     srighparams.w1 = 1;      % cost for adding a new node
-    srighparams.w2 = 1;     % cost for adding per area of solar panel
+    srighparams.w2 = 1;      % cost for adding per area of solar panel
     tic
     sol_srigh = SRIGH(N, O, dist, params, srighparams);
     sol_srigh.time = toc;
