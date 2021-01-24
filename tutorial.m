@@ -3,7 +3,7 @@ clc;
 clear;
 close all;
 warning('off','all');
-%addpath('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
+addpath('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
 addpath('~/CPLEX_Studio1210/cplex/matlab/x86-64_linux');
 addpath('./lldistkm');
 addpath('./solver');
@@ -198,7 +198,7 @@ end
 if run.rdtsh
     fprintf('calling RDTSH...\n');
     rdtshparams.w1 = 1;  % weight for placing new node
-    rdtshparams.w2 = 1.3;  % weight for remained power budget
+    rdtshparams.w2 = 1.5;  % weight for remained power budget
     tic
     sol_rdtsh = RDTSH(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
@@ -240,7 +240,7 @@ end
 if run.rdsrigh
     fprintf('calling RDSRIGH...\n');
     rdsrighparams.w1 = 1;      % cost for adding a new node
-    rdsrighparams.w2 = 10;     % cost for adding per area of solar panel
+    rdsrighparams.w2 = 12;     % cost for adding per area of solar panel
     tic
     sol_srigh = RDSRIGH(N, O, dist, params, rdsrighparams);
     sol_srigh.time = toc;
@@ -275,7 +275,6 @@ if run.srigh
     end
     res.sol_srigh = sol_srigh;
 end
-
 
 % end of tutorial
 

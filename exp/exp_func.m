@@ -6,7 +6,7 @@
 
 function res = exp_func(run, exp_opt)
 warning('off','all');
-%addpath('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
+addpath('/Applications/CPLEX_Studio1210/cplex/matlab/x86-64_osx');
 addpath('~/CPLEX_Studio1210/cplex/matlab/x86-64_linux');
 addpath('../lldistkm');
 addpath('../solver');
@@ -112,12 +112,6 @@ for idx = 1:params.N_o
     O(idx, 1) = unifrnd(0, xScalem);
     O(idx, 2) = unifrnd(0, yScalem);
 end
-% randomly generate the location of the sink
-c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
-% get the distance matrix
-% dist(i, j) denotes the Euclidean distance between grid i and j
-% dist(i, N_cnt+1) denotes the Euclidean distance between i and sink
-dist = getDist(N, c);
 
 % specify the reliability options and targets
 %rel.SoH = true;
@@ -155,12 +149,21 @@ for idx = 1:N_cnt
     N(idx).Pi = Pi(idx); % clip the power constraints to grid struct
 end
 
+% randomly generate the location of the sink
+c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
+% get the distance matrix
+% dist(i, j) denotes the Euclidean distance between grid i and j
+% dist(i, N_cnt+1) denotes the Euclidean distance between i and sink
+dist = getDist(N, c);
+
 %% Call solvers
 % options to run which solver/algorithm
 %run.cplex = true;
 %run.rdtsh = true;
 %run.tsh = true;
 %run.srigh = true;
+%run.rdsrigh = true;
+
 
 % Call the CPLEX solver
 if run.cplex
@@ -205,22 +208,20 @@ end
 % Call RDTSH
 if run.rdtsh
     fprintf('calling RDTSH...\n');
-    tatshparams.w1 = 500;  % weight for placing new node
-    tatshparams.w2 = 800;  % weight for remained power budget
+    rdtshparams.w1 = 1;  % weight for placing new node
+    rdtshparams.w2 = 1.5;  % weight for remained power budget
     tic
-    sol_rdtsh = RDTSH(N, O, dist, params, tatshparams);
+    sol_rdtsh = RDTSH(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
     % plot the solution
     if sol_rdtsh.exitflag == 1
-        %plot_solution(N, O, c, sol_rdtsh, params.S_r, ...
-        %    [xScalem, yScalem], 'RDTSH');
-        [sol_rdtsh.sohmin, sol_rdtsh.mttfmin, sol_rdtsh.vio] = ...
-            rel_check(sol_rdtsh, N, dist, params, rel);
+        plot_solution(N, O, c, sol_rdtsh, params.S_r, ...
+            [xScalem, yScalem], 'RDTSH');
+        sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
         export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
     else
         fprintf('No feasible solution for RDTSH!\n');
-        return;
     end
     res.sol_rdtsh = sol_rdtsh;  
 end
@@ -228,37 +229,55 @@ end
 % Call TSH
 if run.tsh
     fprintf('calling TSH...\n');
-    tshparams.w1 = 500;     % cost for adding a new node
-    tshparams.w2 = 800;     % cost for adding per area of solar panel
+    tshparams.w1 = 1;     % cost for adding a new node
+    tshparams.w2 = 1;     % cost for adding per area of solar panel
     tic
     sol_tsh = TSH(N, O, dist, params, tshparams);
     sol_tsh.time = toc;
     % plot the solution
     if sol_tsh.exitflag == 1
-        %plot_solution(N, O, c, sol_tsh, params.S_r, ...
-        %    [xScalem, yScalem], 'TSH');
-        [sol_tsh.sohmin, sol_tsh.mttfmin, sol_tsh.vio] = ...
-            rel_check(sol_tsh, N, dist, params, rel);
+        plot_solution(N, O, c, sol_tsh, params.S_r, ...
+            [xScalem, yScalem], 'TSH');
+        sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
         export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
     else
         fprintf('No feasible solution for TSH!\n');
-        return;
     end
     res.sol_tsh = sol_tsh;
+end
+
+% Call RDSRIGH
+if run.rdsrigh
+    fprintf('calling RDSRIGH...\n');
+    rdsrighparams.w1 = 1;      % cost for adding a new node
+    rdsrighparams.w2 = 12;     % cost for adding per area of solar panel
+    tic
+    sol_srigh = RDSRIGH(N, O, dist, params, rdsrighparams);
+    sol_srigh.time = toc;
+    if sol_srigh.exitflag == 1
+        plot_solution(N, O, c, sol_srigh, params.S_r, ...
+            [xScalem, yScalem], 'RDSRIGH');
+        sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
+        log('RDSRIGH', sol_srigh);
+        export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
+    else
+        fprintf('No feasible solution for RDSRIGH!\n');
+    end
+    res.sol_srigh = sol_srigh;
 end
 
 % Call SRIGH
 if run.srigh
     fprintf('calling SRIGH...\n');
-    srighparams.w1 = 500;      % cost for adding a new node
-    srighparams.w2 = 800;     % cost for adding per area of solar panel
+    srighparams.w1 = 1;      % cost for adding a new node
+    srighparams.w2 = 1;      % cost for adding per area of solar panel
     tic
     sol_srigh = SRIGH(N, O, dist, params, srighparams);
     sol_srigh.time = toc;
     if sol_srigh.exitflag == 1
-        %plot_solution(N, O, c, sol_srigh, params.S_r, ...
-        %    [xScalem, yScalem], 'SRIGH');
+        plot_solution(N, O, c, sol_srigh, params.S_r, ...
+            [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
         export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
@@ -268,23 +287,8 @@ if run.srigh
     res.sol_srigh = sol_srigh;
 end
 
-% fill in result struct
-if run.cplex
-    res.sol_wo = sol_wo;
-    res.sol_w = sol_w;
-end
-if run.rdtsh
-    res.sol_rdtsh = sol_rdtsh;
-end
-if run.tsh
-    res.sol_tsh = sol_tsh;
-end
-if run.srigh
-    res.sol_srigh = sol_srigh;
-end
 % end of exp func
 end
-
 
 %% Appendix functions
 % Get distance matrix between grid points
@@ -319,10 +323,8 @@ end
 %   rel: the struct of reliability options and targets
 %
 % Return:
-%   sohmin: min SoH of all deployed devices and the bottleneck node id
-%   mttfmin: min MTTF of all deployed devices and the bottleneck node id
-%   vio: percentage of violations among all deployed sites
-function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
+%   sol: updated sol struct with SoH and MTTF and violation percentage
+function [sol] = rel_check(sol, N, dist, params, rel)
     N_cnt = size(N, 1);         % get number of grid locations
     N_bin = length(N(1).Tcen);  % number of temperature bins
     % get the power at all grid locations
@@ -345,17 +347,19 @@ function [sohmin, mttfmin, vio] = rel_check(sol, N, dist, params, rel)
         end
     end
     % calculate minimal SoH of all deployed devices
-    %SoH = soh(Tc, rel.T);
-    sohmin = zeros(1, 2);
-    [sohmin(1), sohmin(2)] = min(SoH);
+    sol.SoH = SoH;
+    sol.sohmin = zeros(1, 2);
+    [sol.sohmin(1), sol.sohmin(2)] = min(SoH);
+    
     % calculate minimal MTTF of all deployed devices
-    %MTTF = mttf(Tc);
-    mttfmin = zeros(1, 2);
-    [mttfmin(1), mttfmin(2)] = min(MTTF);
+    sol.MTTF = MTTF;
+    sol.mttfmin = zeros(1, 2);
+    [sol.mttfmin(1), sol.mttfmin(2)] = min(MTTF);
+    
     % combine all power bounds from N
     %P_bound = vertcat(N(:).Pi);
     % calculate the violation percentage
-    vio = (sum(SoH < rel.SoHref) + sum(MTTF < rel.MTTFref)) / ...
+    sol.vio = (sum(SoH < rel.SoHref) + sum(MTTF < rel.MTTFref)) / ...
         (2 * sum(sol.x));
 end
 
@@ -377,7 +381,7 @@ function bubbleplot_wsize(lat, lon, sizedata, title)
     ax.FontSize = 16;
     %geobasemap streets-light; % set base map style
 end
-
+ %(P_inc(i, j)/max(1e-10, (N(i).Pi - params.P0)))
 % plot the heatmap of temperature in the grid space
 function plot_temp(N, N_x, N_y)
     temp = flipud(reshape(vertcat(N(:).Ti), [N_x, N_y])');
