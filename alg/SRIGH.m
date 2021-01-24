@@ -126,7 +126,7 @@ while sum(T) > 0
         % if source node is not in the "selected node" set
         % then add it in and update the graph weight
         if x(st_idx) == 0
-            x(st_idx) = 1;       
+            x(st_idx) = 1;
             % update weight
             for edge_idx = 1:size(edges, 1)
                 % if the start point of the current edge is st_idx

@@ -40,7 +40,6 @@ end
 
 % create the graph
 G = create_graph(P_inc, N, dist, params, rdsrighparams);
-G
     
 % begin selection process
 while sum(T) > 0
@@ -57,8 +56,7 @@ while sum(T) > 0
     %% stage 2: select a sensor and determine the shortest routing path 
     % from that sensor to the sink
     % calculate the current shortest path tree of all nodes to the sink
-    [SP, D] = shortestpathtree(G, N_cnt+1);
-    D
+    [SP, D] = shortestpathtree(G, 1:N_cnt, N_cnt+1);
     
     % calculate the new coverage offered by each node i
     new_cover = sum(O_cover' & T, 1);
@@ -66,7 +64,7 @@ while sum(T) > 0
     % calculate the benefit of placing node at unplaced node i
     benefit = new_cover ./ D;
     flag = logical(s == 0);
-    benefit = benefit .* flag;
+    benefit = benefit' .* flag;
     
     % get the best benefit value and node index
     [benefit_best, node_best] = max(benefit);
@@ -77,8 +75,8 @@ while sum(T) > 0
         return;
     end
     
-    % P: the list of the nodes in the shortest path
-    P = shortestpath(G, node_best, N_cnt+1);
+    % path_best: the list of the nodes in the shortest path
+    path_best = shortestpath(G, node_best, N_cnt+1);
     
     %% update sensor placement and unsatisfied coverage 
     % given the new placed sensor
@@ -112,8 +110,9 @@ while sum(T) > 0
                 % if the start point of the current edge is st_idx
                 if (edges(edge_idx, 1) == st_idx)
                     % update the edge
+                    edge_ed = edges(edge_idx, 2);
                     G = rmedge(G, st_idx, edges(edge_idx, 2));
-                    new_weight = rdsrighparams.w2 * (P_inc(st_idx, ed_idx) / ...
+                    new_weight = rdsrighparams.w2 * (P_inc(st_idx, edge_ed) / ...
                         max(1e-10, (N(st_idx).Pi - params.P0 - params.Es * params.eta * s(st_idx))));
                     G = addedge(G, st_idx, edges(edge_idx, 2), new_weight);
                 end
