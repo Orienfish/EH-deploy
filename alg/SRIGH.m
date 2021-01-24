@@ -59,6 +59,7 @@ while sum(T) > 0
     %% stage 2: select a sensor to cover the target and determine
     % the shortest routing path from that sensor to the sink
     benefit_best = 0;   % best benefit
+    node_best = -1;     % best node selection
     
     % get best benefit, sensor with best benefit, and the path to achieve
     % the benefit
@@ -79,10 +80,8 @@ while sum(T) > 0
         % in previous selections
         new_cover = sum(O_cover(i, :)' & T);
         
-        % then calculate the denominator: cost of shortest path plus 
-        % new node placement cost
-        % If no node has been placed at i, a new-node cost is added
-        new_cost = d + srighparams.w1 * (x(i) == 0);
+        % then calculate the denominator: cost of shortest path
+        new_cost = d;
         
         benefit = new_cover / new_cost;
         
@@ -92,6 +91,12 @@ while sum(T) > 0
             node_best = i;
             path_best = P;
         end
+    end
+    
+    if node_best == -1
+        fprintf('No new site cover the selected target! Error!\n')
+        sol.exitflag = -1;
+        return;
     end
     
     %% stage 3: update sensor placement and unsatisfied coverage 
@@ -128,7 +133,8 @@ while sum(T) > 0
                 if (edges(edge_idx, 1) == st_idx)
                     % update the edge
                     G = rmedge(G, st_idx, edges(edge_idx, 2));
-                    G = addedge(G, st_idx, edges(edge_idx, 2), cost(st_idx));
+                    G = addedge(G, st_idx, edges(edge_idx, 2), ...
+                        srighparams.w2 * cost(st_idx));
                 end
             end
         end
