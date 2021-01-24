@@ -41,7 +41,7 @@ iter = 20;
 
 % Call exp functions
 % Subtest 1: various number of targets
-N_o_list = [5, 10, 15, 20, 25];
+N_o_list = [10, 15, 20, 25, 30];
 res_target_s = [];
 exp_opt.K = 1;                           % K-coverage
 for i=1:length(N_o_list)
