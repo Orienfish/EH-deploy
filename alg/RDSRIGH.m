@@ -42,24 +42,16 @@ end
 G = create_graph(P_inc, N, dist, params, rdsrighparams);
     
 % begin selection process
-while sum(T) > 0
-    % check whether to exit loop
-    % if no more new coverage can be made, then exit
-    unplaced_node_idx = logical(s == 0);
-    uncover_target_idx = logical(T == 1);
-    if sum(O_cover(unplaced_node_idx, uncover_target_idx)) == 0
-        fprintf('There exist targets cannot be covered! Error!\n')
-        sol.exitflag = -1;
-        return;
-    end
-    
-    %% stage 2: select a sensor and determine the shortest routing path 
+iter = 0;
+while sum(T) > 0  
+    %% select a sensor and determine the shortest routing path 
     % from that sensor to the sink
     % calculate the current shortest path tree of all nodes to the sink
     [SP, D] = shortestpathtree(G, 1:N_cnt, N_cnt+1);
     
-    % calculate the new coverage offered by each node i
-    new_cover = sum(O_cover' & T, 1);
+    % calculate the new coverage benefit offered by each node i
+    P_bd = horzcat(N(:).Pi);
+    new_cover = sum(O_cover' & T, 1) .* P_bd;
     
     % calculate the benefit of placing node at unplaced node i
     benefit = new_cover ./ D;
@@ -69,8 +61,8 @@ while sum(T) > 0
     % get the best benefit value and node index
     [benefit_best, node_best] = max(benefit);
     
-    if node_best == -1
-        fprintf('No new site cover the selected target! Error!\n')
+    if benefit_best <= 0
+        fprintf('There exist targets cannot be covered! Error!\n');
         sol.exitflag = -1;
         return;
     end
@@ -78,7 +70,7 @@ while sum(T) > 0
     % path_best: the list of the nodes in the shortest path
     path_best = shortestpath(G, node_best, N_cnt+1);
     
-    %% update sensor placement and unsatisfied coverage 
+   %% update sensor placement and unsatisfied coverage 
     % given the new placed sensor
     s(node_best) = 1;
     for j=1:N_o
@@ -91,7 +83,7 @@ while sum(T) > 0
         end
     end
     
-    %% update the graph since the nodes on the shortest
+    %% update the graph regarding the nodes on the shortest
     % path have already been placed
     % the first term in computing weight(i, j) should be removed
     edges = G.Edges.EndNodes; % M by 2 matrix
@@ -127,6 +119,15 @@ while sum(T) > 0
             fiB(st_idx) = fiB(st_idx) + params.eta * params.G;
         end
     end
+    
+    %sol.fval = sum(x);
+    %sol.exitflag = 1;
+    %sol.x = x;
+    %sol.s = s;
+    %sol.fij = fij;
+    %sol.fiB = fiB;
+    %plot_solution(N, O, c, sol, params.S_r, [1000, 1000], sprintf('%d', iter));
+    iter = iter + 1;
 end
 
 %% update the solution value
@@ -202,4 +203,61 @@ for i=1:N_cnt
         end
     end
 end
+end
+
+function plot_solution(N, O, c, sol, S_r, maxlim, method)
+    % intialization
+    N_cnt = size(N, 1);  % number of grid locations
+
+    % scatter
+    color_map = [[0 0.4470 0.7410]; ...       % blue
+        [0.3010 0.7450 0.9330]; ...           % ryan
+        [0.8500 0.3250 0.0980]; ...           % orange
+        [0.4660 0.6740 0.1880]; ...           % green
+        [0.6350 0.0780 0.1840]];              % red
+    nodes = vertcat(N.position);              % grid points
+    nodes = vertcat(nodes, O);                % append PoIs
+    nodes = vertcat(nodes, c);                % append the sink
+    sz_nodes = repmat(80, size(nodes, 1), 1); % const size for nodes
+    color_idx = vertcat(sol.x+sol.s, repmat(3, size(O, 1), 1), 4) + 1;
+    color_idx = round(color_idx);
+    color_nodes = vertcat(color_map(color_idx, :));
+    figure;
+    scatter(nodes(:, 1), nodes(:, 2), sz_nodes, color_nodes, 'filled', ...
+        'LineWidth', 2);
+    hold on;
+
+    % plot the coverage circle
+    cplot = @(r, x0, y0) plot(x0 + r * cos(linspace(0, 2*pi)), ...
+        y0 + r * sin(linspace(0, 2*pi)),'r-', 'LineWidth', 2);
+    for i = 1: N_cnt
+        if sol.s(i) > 0.5
+            cplot(S_r, N(i).position(1), N(i).position(2));
+            axis equal; hold on;
+        end
+    end
+
+    % plot the line segment representing flows
+    ls = [];             % list of line segments
+    for i = 1:N_cnt
+        for j = 1:N_cnt
+            fij_idx = (i-1) * N_cnt + j;
+            if sol.fij(fij_idx) > 0.5 && sol.x(i) > 0.5 && sol.x(j) > 0.5
+                ls = [ls; [N(i).position, N(j).position]];
+            end
+        end
+        if sol.fiB(i) > 0.5 && sol.x(i) > 0.5
+            ls = [ls; [N(i).position, c]];
+        end
+    end
+    % plot all line segments
+    for i = 1:size(ls, 1)
+        plot([ls(i, 1), ls(i, 3)], [ls(i, 2), ls(i, 4)], 'b-', ...
+            'LineWidth', 2);
+        hold on;
+    end
+    xlim([0, maxlim(1)]); ylim([0, maxlim(2)]);
+    xlabel('x (m)'); ylabel('y (m)');
+    ax = gca; ax.FontSize = 16;
+    title(method);
 end

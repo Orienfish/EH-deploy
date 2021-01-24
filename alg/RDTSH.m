@@ -39,6 +39,7 @@ while sum(T) > 0 % loop continues if there is uncovered target
     % select the sensor with maximum weight in this round
     [maxval, maxidx] = max(w);
     if maxval <= 0 % exist targets cannot be covered, return failure
+        fprintf('There exist targets cannot be covered! Error!\n');
         sol.exitflag = -1;
         return;
     end
@@ -137,6 +138,7 @@ for i=1:N_cnt
                 params.G / params.B;
             weight_ij = rdtshparams.w1 * (x(i) == 0) + ...
                 rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
+  
             weight_ji = rdtshparams.w1 * (x(j) == 0) + ...
                 rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
             weights = [weights, weight_ij, weight_ji];
