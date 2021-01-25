@@ -176,8 +176,7 @@ if run.cplex
     if sol_w.exitflag == 1
         %plot_solution(N, O, c, sol_w, params.S_r, ...
         %    [xScalem, yScalem], 'CPLEX w/ Rel');
-        [sol_w.sohmin, sol_w.mttfmin, sol_w.vio] = ...
-            rel_check(sol_w, N, dist, params, rel);
+        sol_w = rel_check(sol_w, N, dist, params, rel);
         log('OPT', sol_w);
         export_solution(N, c, sol_w, dist, dataT, 'OPT');
     else
@@ -194,8 +193,7 @@ if run.cplex
     if sol_wo.exitflag == 1
         %plot_solution(N, O, c, sol_wo, params.S_r, ...
         %    [xScalem, yScalem], 'CPLEX w/o Rel');
-        [sol_wo.sohmin, sol_wo.mttfmin, sol_wo.vio] = ...
-            rel_check(sol_wo, N, dist, params, rel);
+        sol_wo = rel_check(sol_wo, N, dist, params, rel);
         log('OPT_wo', sol_wo);
         export_solution(N, c, sol_wo, dist, dataT, 'OPT_wo');
     else
@@ -215,8 +213,8 @@ if run.rdtsh
     sol_rdtsh.time = toc;
     % plot the solution
     if sol_rdtsh.exitflag == 1
-        plot_solution(N, O, c, sol_rdtsh, params.S_r, ...
-            [xScalem, yScalem], 'RDTSH');
+        %plot_solution(N, O, c, sol_rdtsh, params.S_r, ...
+        %    [xScalem, yScalem], 'RDTSH');
         sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
         export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
@@ -236,8 +234,8 @@ if run.tsh
     sol_tsh.time = toc;
     % plot the solution
     if sol_tsh.exitflag == 1
-        plot_solution(N, O, c, sol_tsh, params.S_r, ...
-            [xScalem, yScalem], 'TSH');
+        %plot_solution(N, O, c, sol_tsh, params.S_r, ...
+        %    [xScalem, yScalem], 'TSH');
         sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
         export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
@@ -256,8 +254,8 @@ if run.rdsrigh
     sol_srigh = RDSRIGH(N, O, dist, params, rdsrighparams);
     sol_srigh.time = toc;
     if sol_srigh.exitflag == 1
-        plot_solution(N, O, c, sol_srigh, params.S_r, ...
-            [xScalem, yScalem], 'RDSRIGH');
+        %plot_solution(N, O, c, sol_srigh, params.S_r, ...
+        %    [xScalem, yScalem], 'RDSRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('RDSRIGH', sol_srigh);
         export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
@@ -276,8 +274,8 @@ if run.srigh
     sol_srigh = SRIGH(N, O, dist, params, srighparams);
     sol_srigh.time = toc;
     if sol_srigh.exitflag == 1
-        plot_solution(N, O, c, sol_srigh, params.S_r, ...
-            [xScalem, yScalem], 'SRIGH');
+        %plot_solution(N, O, c, sol_srigh, params.S_r, ...
+        %    [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
         export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
@@ -471,7 +469,7 @@ function export_solution(N, c, sol, dist, dataT, method)
             dataT_idx = N(i).dataT_idx;
             pos_str = sprintf('%.2f_%.2f', dataT.lat(dataT_idx), ...
                 dataT.lon(dataT_idx));
-            folder = './solardata/';
+            folder = '../solardata/';
             f_list = dir(append(folder, sprintf('*%s*.csv', pos_str)));
             if isempty(f_list)
                 fprintf(['Solution Export Error! No trace file!\n', ...
