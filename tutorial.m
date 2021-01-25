@@ -171,7 +171,7 @@ if run.cplex
             [xScalem, yScalem], 'CPLEX w/o Rel');
         sol_wo = rel_check(sol_wo, N, dist, params, rel);
         log('OPT_wo', sol_wo);
-        export_solution(N, c, sol_wo, dist, dataT, 'OPT_wo');
+        export_solution(N, c, sol_wo, dist, dataT, params, 'OPT_wo');
     else
         fprintf('No feasible solution for OPT_wo!\n');
     end
@@ -187,7 +187,7 @@ if run.cplex
             [xScalem, yScalem], 'CPLEX w/ Rel');
         sol_w = rel_check(sol_w, N, dist, params, rel);
         log('OPT', sol_w);
-        export_solution(N, c, sol_w, dist, dataT, 'OPT');
+        export_solution(N, c, sol_w, dist, dataT, params, 'OPT');
     else
         fprintf('No feasible solution for OPT_w!\n');    
     end
@@ -208,7 +208,7 @@ if run.rdtsh
             [xScalem, yScalem], 'RDTSH');
         sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
-        export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
+        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH');
     else
         fprintf('No feasible solution for RDTSH!\n');
     end
@@ -229,7 +229,7 @@ if run.tsh
             [xScalem, yScalem], 'TSH');
         sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
-        export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
+        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH');
     else
         fprintf('No feasible solution for TSH!\n');
     end
@@ -249,7 +249,7 @@ if run.rdsrigh
             [xScalem, yScalem], 'RDSRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('RDSRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
+        export_solution(N, c, sol_srigh, dist, dataT, params, 'RDSRIGH');
     else
         fprintf('No feasible solution for RDSRIGH!\n');
     end
@@ -269,7 +269,7 @@ if run.srigh
             [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
+        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH');
     else
         fprintf('No feasible solution for SRIGH!\n');
     end
@@ -437,7 +437,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim, method)
 end
 
 % export the solution to text file
-function export_solution(N, c, sol, dist, dataT, method)
+function export_solution(N, c, sol, dist, dataT, params, method)
     N_cnt = size(N, 1);         % get number of grid locations
     
     % create one result folder if it doesn't exist
@@ -518,6 +518,18 @@ function export_solution(N, c, sol, dist, dataT, method)
             % export the max transmission power of each placed node
             [max_dist, max_idx] = max(dist_array);
             fprintf(fileID, '%.2f\n', getPtx(max_dist));
+        end
+    end
+    fclose(fileID);
+    
+    % export power of all deployed node
+    % get the power at all grid locations
+    pwr = getPwr(sol, N, dist, params);
+    filename = sprintf('res/pwr_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    for i=1:N_cnt
+        if sol.x(i) > 0.5
+            fprintf(fileID, '%f\n', pwr(i));
         end
     end
     fclose(fileID);
