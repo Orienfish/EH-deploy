@@ -27,7 +27,7 @@ exp_opt.rel.SoHref = 0.90;
 exp_opt.rel.T = 5;                              % years
 exp_opt.rel.MTTF = true;
 exp_opt.rel.MTTFref = 0.94;
-exp_opt.rel.MTTFsolarref = 1; %1.33;
+exp_opt.rel.MTTFsolarref = 1.33;
 
 % options to run which solver/algorithm
 run.cplex = true;
@@ -36,97 +36,102 @@ run.tsh = true;
 run.srigh = true;
 run.rdsrigh = true;
 
-% set test rounds
-%iter = 20;
+% which experiment to run
+exp.small = true;
+exp.large = false;
 
-% Call exp functions
-% Subtest 1: various number of targets
-%N_o_list = [5, 10, 15, 20, 25];
-%res_target_s = [];
-%exp_opt.K = 1;                           % K-coverage
-%for i=1:length(N_o_list)
-%    fprintf('Running small target exp with %d targets\n', N_o_list(i));
-%    for j=1:iter
-%        fprintf('iter %d\n', j);
-%        exp_opt.N_o = N_o_list(i);
-%        res = exp_func(run, exp_opt);
-%        while isempty(res)
-%            res = exp_func(run, exp_opt);
-%        end
-%        res_target_s = [res_target_s; fill_resT(res, run)];
-%    end
-%end
-%exp_opt.N_o = 20;                       % reset to standard value
-%writetable(res_target_s, './res_target_small.csv');
+if exp.small
+    % set test rounds
+    iter = 20;
 
-% Subtest 2: various number of sites
-%N_x_list = [10, 11, 12, 13, 14];
-%res_site_s = [];
-%for i=1:length(N_x_list)
-%    fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
-%    for j=1:iter
-%        fprintf('iter %d\n', j);
-%        exp_opt.N_x = N_x_list(i);
-%        res = exp_func(run, exp_opt);
-%        while isempty(res)
-%            res = exp_func(run, exp_opt);
-%        end
- %       res_site_s = [res_site_s; fill_resT(res, run)];
- %   end
-%end
-%exp_opt.N_x = 10;
-%writetable(res_site_s, './res_site_small.csv');%
+    % Call exp functions
+    % Subtest 1: various number of targets
+    N_o_list = [5, 10, 15, 20, 25];
+    res_target_s = [];
+    exp_opt.K = 1; % K-coverage
+    for i=1:length(N_o_list)
+        fprintf('Running small target exp with %d targets\n', N_o_list(i));
+        for j=1:iter
+            fprintf('iter %d\n', j);
+            exp_opt.N_o = N_o_list(i);
+            res = exp_func(run, exp_opt);
+            while isempty(res)
+                res = exp_func(run, exp_opt);
+            end
+            fill_resT(res, run, './res_target_small.csv');
+        end
+    end
+    exp_opt.N_o = 20; % reset to standard value
+
+    % Subtest 2: various number of sites
+    N_x_list = [10, 11, 12, 13, 14];
+    res_site_s = [];
+    for i=1:length(N_x_list)
+        fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
+        for j=1:iter
+            fprintf('iter %d\n', j);
+            exp_opt.N_x = N_x_list(i);
+            res = exp_func(run, exp_opt);
+            while isempty(res)
+                res = exp_func(run, exp_opt);
+            end
+            fill_resT(res, run, './res_site_small.csv');
+        end
+    end
+    exp_opt.N_x = 10; % reset to standard value
+end
 
 %% Experiment 2: large scale simulation
-run.cplex = false;
-% set scale of grid space
-exp_opt.xScalem = 4000;                         % m
-exp_opt.yScalem = 4000;                         % m
-exp_opt.N_x = 80;
-exp_opt.N_y = 80;
-exp_opt.K = 2;                            % K-coverage
+if exp.large
+    run.cplex = false;
+    % set scale of grid space
+    exp_opt.xScalem = 4000;                         % m
+    exp_opt.yScalem = 4000;                         % m
+    exp_opt.N_x = 80;
+    exp_opt.N_y = 80;
+    exp_opt.K = 2;                            % K-coverage
 
-exp_opt.N_o = 100;                        % number of PoIs
+    exp_opt.N_o = 100;                        % number of PoIs
+    exp_opt.rel.MTTFsolarref = 1;          % solar panel MTTF bound
 
-% set test rounds
-iter = 20;
+    % set test rounds
+    iter = 20;
 
-% Call exp functions
-% Subtest 1: various number of targets
-N_o_list = [50, 75, 100, 125, 150];
-res_target_l = [];
-for i=1:length(N_o_list)
-    fprintf('Running large target exp with %d targets\n', N_o_list(i));
-    for j=1:iter
-        fprintf('iter %d\n', j);
-        exp_opt.N_o = N_o_list(i);
-        res = exp_func(run, exp_opt);
-        while isempty(res)
+    % Call exp functions
+    % Subtest 1: various number of targets
+    N_o_list = [50, 75, 100, 125, 150];
+    res_target_l = [];
+    for i=1:length(N_o_list)
+        fprintf('Running large target exp with %d targets\n', N_o_list(i));
+        for j=1:iter
+            fprintf('iter %d\n', j);
+            exp_opt.N_o = N_o_list(i);
             res = exp_func(run, exp_opt);
+            while isempty(res)
+                res = exp_func(run, exp_opt);
+            end
+            fill_resT(res, run, './res_target_large.csv');
         end
-        res_target_l = [res_target_l; fill_resT(res, run)];
     end
-end
-exp_opt.N_o = 100;                       % reset to standard value
-writetable(res_target_l, './res_target_large.csv');
+    exp_opt.N_o = 100; % reset to standard value
 
-% Subtest 2: various number of sites
-N_x_list = [60, 70, 80, 90, 100];
-res_site_l = [];
-for i=1:length(N_x_list)
-    fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
-    for j=1:iter
-        fprintf('iter %d\n', j);
-        exp_opt.N_x = N_x_list(i);
-        res = exp_func(run, exp_opt);
-        while isempty(res)
+    % Subtest 2: various number of sites
+    N_x_list = [60, 70, 80, 90, 100];
+    res_site_l = [];
+    for i=1:length(N_x_list)
+        fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
+        for j=1:iter
+            fprintf('iter %d\n', j);
+            exp_opt.N_x = N_x_list(i);
             res = exp_func(run, exp_opt);
+            while isempty(res)
+                res = exp_func(run, exp_opt);
+            end
+            fill_resT(res, run, './res_site_large.csv');
         end
-        res_site_l = [res_site_l; fill_resT(res, run)];
     end
+    exp_opt.N_x = 100; % reset to standard value
 end
-exp_opt.N_x = 100;
-writetable(res_site_l, './res_site_large.csv');
 
 % Subtest 3: various coverage level
 %k_list = [1, 2, 3, 4];
@@ -169,14 +174,15 @@ writetable(res_site_l, './res_site_large.csv');
 %writetable(res_trade_l, './res_trade_large.csv');
 
 %% Appendix functions
-% Fill in result table from the result struct
+% Fill in result table from the result struct and write table to file
 % Args:
 %   res: the result struct returned by exp_func
 %   run: run options
+%   filename: the file to write to
 %
 % Return:
 %   resT: one line in the result table
-function resT = fill_resT(res, run)
+function resT = fill_resT(res, run, filename)
 % initialize one line of result table
 varNames = {'opt_wo_fval', 'opt_wo_vio', 'opt_wo_sohmin', 'opt_wo_mttfmin', ...
             'opt_wo_time', ...
@@ -230,5 +236,13 @@ if run.srigh
     resT.srigh_sohmin(1) = res.sol_srigh.sohmin(1);
     resT.srigh_mttfmin(1) = res.sol_srigh.mttfmin(1);
     resT.srigh_time(1) = res.sol_srigh.time;
+end
+
+% if this is the first line of result, write variables name
+if ~exist(filename, 'file')
+    writetable(resT, filename);
+else % append to existing table
+    writetable(resT, filename, 'WriteMode', 'Append', ...
+        'WriteVariableNames', false);
 end
 end
