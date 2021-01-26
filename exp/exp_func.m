@@ -220,6 +220,7 @@ if run.rdtsh
         export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
     else
         fprintf('No feasible solution for RDTSH!\n');
+        return;
     end
     res.sol_rdtsh = sol_rdtsh;  
 end
@@ -241,6 +242,7 @@ if run.tsh
         export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
     else
         fprintf('No feasible solution for TSH!\n');
+        return;
     end
     res.sol_tsh = sol_tsh;
 end
@@ -261,6 +263,7 @@ if run.rdsrigh
         export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
     else
         fprintf('No feasible solution for RDSRIGH!\n');
+        return;
     end
     res.sol_srigh = sol_srigh;
 end

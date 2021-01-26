@@ -37,45 +37,45 @@ run.srigh = true;
 run.rdsrigh = true;
 
 % set test rounds
-iter = 20;
+%iter = 20;
 
 % Call exp functions
 % Subtest 1: various number of targets
-N_o_list = [10, 15, 20, 25, 30];
-res_target_s = [];
-exp_opt.K = 1;                           % K-coverage
-for i=1:length(N_o_list)
-    fprintf('Running small target exp with %d targets\n', N_o_list(i));
-    for j=1:iter
-        fprintf('iter %d\n', j);
-        exp_opt.N_o = N_o_list(i);
-        res = exp_func(run, exp_opt);
-        while isempty(res)
-            res = exp_func(run, exp_opt);
-        end
-        res_target_s = [res_target_s; fill_resT(res, run)];
-    end
-end
-exp_opt.N_o = 20;                       % reset to standard value
-writetable(res_target_s, './res_target_small.csv');
+%N_o_list = [10, 15, 20, 25, 30];
+%res_target_s = [];
+%exp_opt.K = 1;                           % K-coverage
+%for i=1:length(N_o_list)
+%    fprintf('Running small target exp with %d targets\n', N_o_list(i));
+%    for j=1:iter
+%        fprintf('iter %d\n', j);
+%        exp_opt.N_o = N_o_list(i);
+%        res = exp_func(run, exp_opt);
+%        while isempty(res)
+%            res = exp_func(run, exp_opt);
+%        end
+%        res_target_s = [res_target_s; fill_resT(res, run)];
+%    end
+%end
+%exp_opt.N_o = 20;                       % reset to standard value
+%writetable(res_target_s, './res_target_small.csv');
 
 % Subtest 2: various number of sites
-N_x_list = [10, 11, 12, 13, 14];
-res_site_s = [];
-for i=1:length(N_x_list)
-    fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
-    for j=1:iter
-        fprintf('iter %d\n', j);
-        exp_opt.N_x = N_x_list(i);
-        res = exp_func(run, exp_opt);
-        while isempty(res)
-            res = exp_func(run, exp_opt);
-        end
-        res_site_s = [res_site_s; fill_resT(res, run)];
-    end
-end
-exp_opt.N_x = 10;
-writetable(res_site_s, './res_site_small.csv');
+%N_x_list = [10, 11, 12, 13, 14];
+%res_site_s = [];
+%for i=1:length(N_x_list)
+%    fprintf('Running small site exp with %d sites on x\n', N_x_list(i));
+%    for j=1:iter
+%        fprintf('iter %d\n', j);
+%        exp_opt.N_x = N_x_list(i);
+%        res = exp_func(run, exp_opt);
+%        while isempty(res)
+%            res = exp_func(run, exp_opt);
+%        end
+ %       res_site_s = [res_site_s; fill_resT(res, run)];
+ %   end
+%end
+%exp_opt.N_x = 10;
+%writetable(res_site_s, './res_site_small.csv');%
 
 %% Experiment 2: large scale simulation
 run.cplex = false;
@@ -89,7 +89,7 @@ exp_opt.K = 2;                            % K-coverage
 exp_opt.N_o = 100;                        % number of PoIs
 
 % set test rounds
-iter = 40;
+iter = 20;
 
 % Call exp functions
 % Subtest 1: various number of targets
