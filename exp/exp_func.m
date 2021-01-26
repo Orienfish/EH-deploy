@@ -178,7 +178,7 @@ if run.cplex
         %    [xScalem, yScalem], 'CPLEX w/ Rel');
         sol_w = rel_check(sol_w, N, dist, params, rel);
         log('OPT', sol_w);
-        export_solution(N, c, sol_w, dist, dataT, 'OPT');
+        %export_solution(N, c, sol_w, dist, dataT, 'OPT');
     else
         fprintf('No feasible solution for OPT_w!\n');
         return;
@@ -195,7 +195,7 @@ if run.cplex
         %    [xScalem, yScalem], 'CPLEX w/o Rel');
         sol_wo = rel_check(sol_wo, N, dist, params, rel);
         log('OPT_wo', sol_wo);
-        export_solution(N, c, sol_wo, dist, dataT, 'OPT_wo');
+        %export_solution(N, c, sol_wo, dist, dataT, 'OPT_wo');
     else
         fprintf('No feasible solution for OPT_wo!\n');
         return;
@@ -217,7 +217,7 @@ if run.rdtsh
         %    [xScalem, yScalem], 'RDTSH');
         sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
-        export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
+        %export_solution(N, c, sol_rdtsh, dist, dataT, 'RDTSH');
     else
         fprintf('No feasible solution for RDTSH!\n');
         return;
@@ -239,7 +239,7 @@ if run.tsh
         %    [xScalem, yScalem], 'TSH');
         sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
-        export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
+        %export_solution(N, c, sol_tsh, dist, dataT, 'TSH');
     else
         fprintf('No feasible solution for TSH!\n');
         return;
@@ -260,7 +260,7 @@ if run.rdsrigh
         %    [xScalem, yScalem], 'RDSRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('RDSRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
+        %export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
     else
         fprintf('No feasible solution for RDSRIGH!\n');
         return;
@@ -281,7 +281,7 @@ if run.srigh
         %    [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
+        %export_solution(N, c, sol_srigh, dist, dataT, 'SRIGH');
     else
         fprintf('No feasible solution for SRIGH!\n');
     end

@@ -27,7 +27,7 @@ exp_opt.rel.SoHref = 0.90;
 exp_opt.rel.T = 5;                              % years
 exp_opt.rel.MTTF = true;
 exp_opt.rel.MTTFref = 0.94;
-exp_opt.rel.MTTFsolarref = 1.33;
+exp_opt.rel.MTTFsolarref = 1; %1.33;
 
 % options to run which solver/algorithm
 run.cplex = true;
@@ -80,10 +80,10 @@ run.rdsrigh = true;
 %% Experiment 2: large scale simulation
 run.cplex = false;
 % set scale of grid space
-exp_opt.xScalem = 5000;                         % m
-exp_opt.yScalem = 5000;                         % m
-exp_opt.N_x = 100;
-exp_opt.N_y = 100;
+exp_opt.xScalem = 4000;                         % m
+exp_opt.yScalem = 4000;                         % m
+exp_opt.N_x = 80;
+exp_opt.N_y = 80;
 exp_opt.K = 2;                            % K-coverage
 
 exp_opt.N_o = 100;                        % number of PoIs
@@ -111,7 +111,7 @@ exp_opt.N_o = 100;                       % reset to standard value
 writetable(res_target_l, './res_target_large.csv');
 
 % Subtest 2: various number of sites
-N_x_list = [80, 90, 100, 110, 120];
+N_x_list = [60, 70, 80, 90, 100];
 res_site_l = [];
 for i=1:length(N_x_list)
     fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
