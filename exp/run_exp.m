@@ -7,10 +7,10 @@ warning('off','all');
 %% Experiment 1: small scale simulation
 % Set experiment options
 % set scale of grid space
-exp_opt.xScalem = 600;                         % m
-exp_opt.yScalem = 600;                         % m
-exp_opt.N_x = 12;
-exp_opt.N_y = 12;
+exp_opt.xScalem = 500;                         % m
+exp_opt.yScalem = 500;                         % m
+exp_opt.N_x = 10;
+exp_opt.N_y = 10;
 
 % basic parameters
 exp_opt.S_r = 100;                       % sensing range in m

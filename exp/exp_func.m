@@ -253,19 +253,19 @@ if run.rdsrigh
     rdsrighparams.w1 = 1;      % cost for adding a new node
     rdsrighparams.w2 = 12;     % cost for adding per area of solar panel
     tic
-    sol_srigh = RDSRIGH(N, O, dist, params, rdsrighparams);
-    sol_srigh.time = toc;
-    if sol_srigh.exitflag == 1
-        %plot_solution(N, O, c, sol_srigh, params.S_r, ...
+    sol_rdsrigh = RDSRIGH(N, O, dist, params, rdsrighparams);
+    sol_rdsrigh.time = toc;
+    if sol_rdsrigh.exitflag == 1
+        %plot_solution(N, O, c, sol_rdsrigh, params.S_r, ...
         %    [xScalem, yScalem], 'RDSRIGH');
-        sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
-        log('RDSRIGH', sol_srigh);
-        %export_solution(N, c, sol_srigh, dist, dataT, 'RDSRIGH');
+        sol_rdsrigh = rel_check(sol_rdsrigh, N, dist, params, rel);
+        log('RDSRIGH', sol_rdsrigh);
+        %export_solution(N, c, sol_rdsrigh, dist, dataT, 'RDSRIGH');
     else
         fprintf('No feasible solution for RDSRIGH!\n');
         return;
     end
-    res.sol_srigh = sol_srigh;
+    res.sol_rdsrigh = sol_rdsrigh;
 end
 
 % Call SRIGH
