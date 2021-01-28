@@ -34,15 +34,15 @@ run.cplex = true;
 run.rdtsh = true;
 run.tsh = true;
 run.srigh = true;
-run.rdsrigh = true;
+run.rdsrigh = false;
 
 % which experiment to run
-exp.small = true;
-exp.large = false;
+exp.small = false;
+exp.large = true;
 
 if exp.small
     % set test rounds
-    iter = 20;
+    iter = 40;
 
     % Call exp functions
     % Subtest 1: various number of targets
@@ -85,17 +85,14 @@ end
 if exp.large
     run.cplex = false;
     % set scale of grid space
-    exp_opt.xScalem = 4000;                         % m
-    exp_opt.yScalem = 4000;                         % m
-    exp_opt.N_x = 80;
-    exp_opt.N_y = 80;
+    exp_opt.xScalem = 5000;                         % m
+    exp_opt.yScalem = 5000;                         % m
+    exp_opt.N_x = 100;
+    exp_opt.N_y = 100;
     exp_opt.K = 2;                            % K-coverage
 
-    exp_opt.N_o = 100;                        % number of PoIs
-    exp_opt.rel.MTTFsolarref = 1;          % solar panel MTTF bound
-
     % set test rounds
-    iter = 20;
+    iter = 40;
 
     % Call exp functions
     % Subtest 1: various number of targets
@@ -116,7 +113,7 @@ if exp.large
     exp_opt.N_o = 100; % reset to standard value
 
     % Subtest 2: various number of sites
-    N_x_list = [60, 70, 80, 90, 100];
+    N_x_list = [60, 80, 100, 120, 140];
     res_site_l = [];
     for i=1:length(N_x_list)
         fprintf('Running large site exp with %d sites on x\n', N_x_list(i));

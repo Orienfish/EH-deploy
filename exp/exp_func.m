@@ -106,12 +106,6 @@ params.maxf = params.eta*params.G*N_cnt;% maximum flow amount
 params.P0 = 0.01;                       % sleep power (W)
 params.Es = 0.2*0.2;                    % sensing energy (W*s)
 params.Prx = 0.1;                       % reception power (W)
-% randomly generate PoIs to monitor
-O = repmat([], params.N_o, 2);
-for idx = 1:params.N_o
-    O(idx, 1) = unifrnd(0, xScalem);
-    O(idx, 2) = unifrnd(0, yScalem);
-end
 
 % specify the reliability options and targets
 %rel.SoH = true;
@@ -147,6 +141,25 @@ end
 Pi = min(Pi, [], 2); % get the column vector of min of each row
 for idx = 1:N_cnt
     N(idx).Pi = Pi(idx); % clip the power constraints to grid struct
+end
+
+% randomly generate PoIs to monitor
+O = repmat([], params.N_o, 2);
+for i = 1:params.N_o
+    flag = params.K;   % how many nodes can cover this target
+    while flag > 0
+        flag = params.K;
+        O(i, 1) = unifrnd(0, xScalem);
+        O(i, 2) = unifrnd(0, yScalem);
+        for j = 1:N_cnt
+            if norm(O(i, :) - N(j).position) < params.S_r
+                flag = flag - 1;
+            end
+            if flag <= 0
+                break; % early termination
+            end
+        end
+    end
 end
 
 % randomly generate the location of the sink

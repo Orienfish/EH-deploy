@@ -54,7 +54,7 @@ while sum(T) > 0
     new_cover = sum(O_cover' & T, 1) .* P_bd;
     
     % calculate the benefit of placing node at unplaced node i
-    benefit = new_cover ./ D;
+    benefit = new_cover .* D;
     flag = logical(s == 0);
     benefit = benefit' .* flag;
     
@@ -105,7 +105,8 @@ while sum(T) > 0
                     edge_ed = edges(edge_idx, 2);
                     G = rmedge(G, st_idx, edges(edge_idx, 2));
                     new_weight = rdsrighparams.w2 * (P_inc(st_idx, edge_ed) / ...
-                        max(1e-10, (N(st_idx).Pi - params.P0 - params.Es * params.eta * s(st_idx))));
+                        max(1e-10, (N(st_idx).Pi - params.P0 - ...
+                        params.Es * params.eta * s(st_idx))));
                     G = addedge(G, st_idx, edges(edge_idx, 2), new_weight);
                 end
             end
