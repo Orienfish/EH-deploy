@@ -163,7 +163,17 @@ for i = 1:params.N_o
 end
 
 % randomly generate the location of the sink
-c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
+flag = false;   % whether this sink location is good
+while ~flag
+    c = [unifrnd(0, xScalem), unifrnd(0, yScalem)];
+    for j = 1:N_cnt
+        if norm(c - N(j).position) < params.C_r
+            % make sure this sink can be reached by at least one node
+            flag = true;
+            break;
+        end
+    end  
+end
 % get the distance matrix
 % dist(i, j) denotes the Euclidean distance between grid i and j
 % dist(i, N_cnt+1) denotes the Euclidean distance between i and sink

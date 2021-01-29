@@ -26,7 +26,7 @@ exp_opt.rel.SoH = true;
 exp_opt.rel.SoHref = 0.90;
 exp_opt.rel.T = 5;                              % years
 exp_opt.rel.MTTF = true;
-exp_opt.rel.MTTFref = 0.94;
+exp_opt.rel.MTTFref = 0.90;
 exp_opt.rel.MTTFsolarref = 1.33;
 
 % options to run which solver/algorithm
@@ -46,7 +46,7 @@ if exp.small
 
     % Call exp functions
     % Subtest 1: various number of targets
-    N_o_list = [5, 10, 15, 20, 25];
+    N_o_list = [10, 15, 20, 25, 30];
     res_target_s = [];
     exp_opt.K = 1; % K-coverage
     for i=1:length(N_o_list)
