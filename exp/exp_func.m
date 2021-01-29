@@ -252,7 +252,7 @@ end
 if run.tsh
     fprintf('calling TSH...\n');
     tshparams.w1 = 1;     % cost for adding a new node
-    tshparams.w2 = 1;     % cost for adding per area of solar panel
+    tshparams.w2 = 1.3;     % cost for adding per area of solar panel
     tic
     sol_tsh = TSH(N, O, dist, params, tshparams);
     sol_tsh.time = toc;
@@ -295,7 +295,7 @@ end
 if run.srigh
     fprintf('calling SRIGH...\n');
     srighparams.w1 = 1;      % cost for adding a new node
-    srighparams.w2 = 1;      % cost for adding per area of solar panel
+    srighparams.w2 = 150;      % cost for adding per area of solar panel
     tic
     sol_srigh = SRIGH(N, O, dist, params, srighparams);
     sol_srigh.time = toc;
