@@ -221,7 +221,7 @@ end
 if run.rdtsh
     fprintf('calling RDTSH...\n');
     rdtshparams.w1 = 1;  % weight for placing new node
-    rdtshparams.w2 = 2;  % weight for remained power budget
+    rdtshparams.w2 = 1.3;  % weight for remained power budget
     tic
     sol_rdtsh = RDTSH(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
@@ -263,7 +263,7 @@ end
 if run.rdsrigh
     fprintf('calling RDSRIGH...\n');
     rdsrighparams.w1 = 1;      % cost for adding a new node
-    rdsrighparams.w2 = 20;     % cost for adding per area of solar panel
+    rdsrighparams.w2 = 15;     % cost for adding per area of solar panel
     tic
     sol_rdsrigh = RDSRIGH(N, O, dist, params, rdsrighparams);
     sol_rdsrigh.time = toc;
