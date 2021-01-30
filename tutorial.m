@@ -475,6 +475,8 @@ function export_solution(N, c, sol, dist, dataT, params, method)
     fileID = fopen(filename, 'w');
     filetemp = sprintf('res/temp_%d_%s.txt', floor(sol.fval), method);
     filetempID = fopen(filetemp, 'w');
+    filerc = sprintf('res/rc_%d_%s.txt', floor(sol.fval), method);
+    filercID = fopen(filerc, 'w');
     for i=1:N_cnt
         if sol.x(i) > 0.5
             fprintf(fileID, '%.2f %.2f %d\n', N(i).position(1), ...
@@ -494,11 +496,15 @@ function export_solution(N, c, sol, dist, dataT, params, method)
             f_name = f_list(1).name;
             T = readtable(append(folder, f_name), 'Delimiter', ',', ...
                 'HeaderLines', 2); % jump first two lines
-            array = T.Temperature(~isnan(T.Temperature)); % filter out nan
-            for t_idx=1:floor(size(array, 1)/8)
-                fprintf(filetempID, '%.2f ', mean(array(8*(t_idx-1)+1:8*t_idx)));
+            Tarray = T.Temperature(~isnan(T.Temperature)); % filter out nan
+            RCarray = T.DNI(~isnan(T.DNI)); % filter out nan
+            for t_idx=1:floor(size(Tarray, 1)/8)
+                fprintf(filetempID, '%.2f ', mean(Tarray(8*(t_idx-1)+1:8*t_idx)));
+                fprintf(filercID, '%.2f ', mean(RCarray(8*(t_idx-1)+1:8*t_idx)) * ...
+                    N(i).xi * 0.01);
             end
             fprintf(filetempID, '\n');
+            fprintf(filercID, '\n');
         end
     end
     fclose(fileID);
