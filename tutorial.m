@@ -43,7 +43,7 @@ N_y = 10;
 N_cnt = N_x * N_y;      % number of grid points
 Unit_x = floor(xScalem / (N_x - 1));
 Unit_y = floor(yScalem / (N_y - 1));
-A = 0.01;               % surface area (m^2) of solar panel
+params.A = 0.01;               % surface area (m^2) of solar panel
 
 % the factor to transform from grid (m) to lat and lon
 % x - longitude, y - latitude
@@ -75,11 +75,11 @@ for j = 0:N_y-1
         N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 4.0;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
         % assign conversion efficiency according to average temperature
-        N(i + j * N_x + 1).xi = eff(N(i + j * N_x + 1).Ti, A, ...
+        N(i + j * N_x + 1).xi = eff(N(i + j * N_x + 1).Ti, params.A, ...
             dataT.dni_avg(dataT_idx));
         % assign the corresponding recharging power in W
         % conversion efficiency, solar panel area, w/m2 radiation
-        N(i + j * N_x + 1).Ri = N(i + j * N_x + 1).xi * A * ...
+        N(i + j * N_x + 1).Ri = N(i + j * N_x + 1).xi * params.A * ...
             dataT.dni_avg(dataT_idx);
         % compute the expectation of MTTF of solar panel in ratio
         N(i + j * N_x + 1).MTTFi = mttf_solar(N(i + j * N_x + 1));
@@ -501,7 +501,7 @@ function export_solution(N, c, sol, dist, dataT, params, method)
             for t_idx=1:floor(size(Tarray, 1)/8)
                 fprintf(filetempID, '%.2f ', mean(Tarray(8*(t_idx-1)+1:8*t_idx)));
                 fprintf(filercID, '%.2f ', mean(RCarray(8*(t_idx-1)+1:8*t_idx)) * ...
-                    N(i).xi * 0.01);
+                    N(i).xi * params.A);
             end
             fprintf(filetempID, '\n');
             fprintf(filercID, '\n');
