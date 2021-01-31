@@ -120,6 +120,7 @@ rel = exp_opt.rel;
 MTTFi = vertcat(N(:).MTTFi);
 N = N(MTTFi > rel.MTTFsolarref);
 N_cnt = size(N, 1);
+res.sparse = N_cnt / (N_x * N_y);   % report the sparse result
 
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri) ;                 % power constraints (W)

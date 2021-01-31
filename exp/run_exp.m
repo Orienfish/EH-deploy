@@ -30,17 +30,26 @@ exp_opt.rel.MTTFref = 0.90;
 exp_opt.rel.MTTFsolarref = 1.33;
 
 % options to run which solver/algorithm
-run.cplex = true;
-run.rdtsh = true;
-run.tsh = true;
-run.srigh = true;
+run.cplex = false;
+run.rdtsh = false;
+run.tsh = false;
+run.srigh = false;
 run.rdsrigh = false;
 
 % which experiment to run
 exp.small = false;
-exp.large = true;
+exp.large = false;
+exp.sparse = true;
 
+%% Experiment 1: small scale simulation
 if exp.small
+    % set alg to run
+    run.cplex = true;
+    run.rdtsh = true;
+    run.tsh = true;
+    run.srigh = true;
+    run.rdsrigh = false;
+
     % set test rounds
     iter = 40;
 
@@ -83,7 +92,9 @@ end
 
 %% Experiment 2: large scale simulation
 if exp.large
+    % set which alg to run
     run.cplex = false;
+    
     % set scale of grid space
     exp_opt.xScalem = 5000;                         % m
     exp_opt.yScalem = 5000;                         % m
@@ -117,6 +128,7 @@ if exp.large
     res_site_l = [];
     for i=1:length(N_x_list)
         fprintf('Running large site exp with %d sites on x\n', N_x_list(i));
+
         for j=1:iter
             fprintf('iter %d\n', j);
             exp_opt.N_x = N_x_list(i);
@@ -130,23 +142,26 @@ if exp.large
     exp_opt.N_x = 100; % reset to standard value
 end
 
-% Subtest 3: various coverage level
-%k_list = [1, 2, 3, 4];
-%res_k_l = [];
-%for i=1:length(k_list)
-%    fprintf('Running large site exp with coverage level %d\n', k_list(i));
-%    for j=1:iter
-%        fprintf('iter %d\n', j);
-%        exp_opt.K = k_list(i);
-%        res = exp_func(run, exp_opt);
-%        while isempty(res)
-%            res = exp_func(run, exp_opt);
-%        end
-%        res_k_l = [res_k_l; fill_resT(res, run)];
-%    end
-%end
-%exp_opt.K = 2;
-%writetable(res_k_l, './res_cover_large.csv');
+%% Experiment 3: sparsity level due to MTTFsolarref
+if exp.sparse
+	% set scale of grid space
+    exp_opt.xScalem = 5000;                         % m
+    exp_opt.yScalem = 5000;                         % m
+    exp_opt.N_x = 100;
+    exp_opt.N_y = 100;
+    
+    % set the MTTFsolarref value to test
+    MTTFsolarref = [1.3, 1.35, 1.4, 1.45, 1.5, 1.55, 1.6];
+    res_sparse = [];
+    for i=1:length(MTTFsolarref)
+        fprintf('Running sparsity level exp with MTTFsolar %f\n', MTTFsolarref(i));
+        exp_opt.rel.MTTFsolarref = MTTFsolarref(i);
+        res = exp_func(run, exp_opt);
+        res_sparse = [res_sparse, res.sparse];
+    end
+    writematrix(res_sparse, 'res_sparse.csv');
+    exp_opt.rel.MTTFsolarref = 1.33;
+end
 
 % Subtest 4: trade-offs between reliability and number of nodes
 %run.tsh = false;
