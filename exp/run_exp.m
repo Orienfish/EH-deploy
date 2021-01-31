@@ -46,8 +46,8 @@ run.rdsrigh = false;
 exp.small = false;
 exp.large = false;
 exp.sparse = false;
-exp.temp_sense = false;
-exp.rdtsh_weight = true;
+exp.temp_sense = true;
+exp.rdtsh_weight = false;
 
 %% Experiment 1: small scale simulation
 if exp.small
@@ -188,9 +188,9 @@ if exp.temp_sense
     iter = 20;
     
     % set the increased temperature to test
-    temp_list = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+    temp_list = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
     res_temp_l = [];
-    for i=1:length(N_temp_list)
+    for i=1:length(temp_list)
         fprintf('Running temp sensitivity test with temp add %.1f\n', temp_list(i));
         for j=1:iter
             fprintf('iter %d\n', j);
