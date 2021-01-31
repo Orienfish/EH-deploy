@@ -24,6 +24,9 @@ exp_opt.eta = 0.2;                       % sampling frequency
 % temperature addition to test sensitivity
 exp_opt.temp_add = 4.0;
 
+% weight 2 of RDTSH
+exp_opt.RDTSH_w2 = 1.3;
+
 % specify the reliability options and targets
 exp_opt.rel.SoH = true;
 exp_opt.rel.SoHref = 0.90;
@@ -43,7 +46,8 @@ run.rdsrigh = false;
 exp.small = false;
 exp.large = false;
 exp.sparse = false;
-exp.temp_sense = true;
+exp.temp_sense = false;
+exp.rdtsh_weight = true;
 
 %% Experiment 1: small scale simulation
 if exp.small
@@ -101,7 +105,7 @@ if exp.large
     run.srigh = true;
     
     % set scale of grid space
-    exp_opt.xScalem = 5000;                         % m
+    exp_opt.xScalem = 5000;                  temp_sense       % m
     exp_opt.yScalem = 5000;                         % m
     exp_opt.N_x = 100;
     exp_opt.N_y = 100;
@@ -151,7 +155,7 @@ if exp.sparse
 	% set scale of grid space
     exp_opt.xScalem = 5000;                         % m
     exp_opt.yScalem = 5000;                         % m
-    exp_opt.N_x = 100;
+    exp_opt.N_x = 100;temp_sense
     exp_opt.N_y = 100;
     
     % set the MTTFsolarref value to test
@@ -184,13 +188,13 @@ if exp.temp_sense
     iter = 20;
     
     % set the increased temperature to test
-    N_temp_list = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+    temp_list = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
     res_temp_l = [];
     for i=1:length(N_temp_list)
-        fprintf('Running temp sensitivity test with temp add %.1f\n', N_temp_list(i));
+        fprintf('Running temp sensitivity test with temp add %.1f\n', temp_list(i));
         for j=1:iter
             fprintf('iter %d\n', j);
-            exp_opt.temp_add = N_temp_list(i);
+            exp_opt.temp_add = temp_list(i);
             res = exp_func(run, exp_opt);
             while isempty(res)
                 res = exp_func(run, exp_opt);
@@ -199,6 +203,40 @@ if exp.temp_sense
         end
     end
     exp_opt.temp_add = 4.0;                   % reset to standard value
+end
+
+%% Experiment 5: trade-off using RDTSH weight
+if exp.rdtsh_weight
+    % set which alg to run
+    run.rdtsh = true;
+    
+    % set scale of grid space
+    exp_opt.xScalem = 5000;                         % m
+    exp_opt.yScalem = 5000;                         % m
+    exp_opt.N_x = 100;
+    exp_opt.N_y = 100;
+    exp_opt.N_o = 100;
+    exp_opt.K = 2;                            % K-coverage
+
+    % set test rounds
+    iter = 20;
+    
+    % set the increased temperature to test
+    w2_list = [0.9, 1.1, 1.3, 1.5, 1.7, 1.9, 2.1];
+    res_w2_l = [];
+    for i=1:length(w2_list)
+        fprintf('Running weight trade-off test with w2 %.1f\n', w2_list(i));
+        for j=1:iter
+            fprintf('iter %d\n', j);
+            exp_opt.RDTSH_w2 = w2_list(i);
+            res = exp_func(run, exp_opt);
+            while isempty(res)
+                res = exp_func(run, exp_opt);
+            end
+            fill_resT(res, run, './res_weight_large.csv');
+        end
+    end
+    exp_opt.RDTSH_w2 = 1.3;                   % reset to standard value
 end
 
 %% Appendix functions

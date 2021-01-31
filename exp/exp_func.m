@@ -231,7 +231,7 @@ end
 if run.rdtsh
     fprintf('calling RDTSH...\n');
     rdtshparams.w1 = 1;  % weight for placing new node
-    rdtshparams.w2 = 1.3;  % weight for remained power budget
+    rdtshparams.w2 = exp_opt.RDTSH_w2; %1.3;  % weight for remained power budget
     tic
     sol_rdtsh = RDTSH(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
