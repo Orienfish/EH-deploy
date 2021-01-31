@@ -76,8 +76,8 @@ for j = 0:N_y-1
         % memorize the original idx for final exportation
         N(i + j * N_x + 1).dataT_idx = dataT_idx;
         % assign the corresponding temperature distribution in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 4.0;
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 4.0;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + exp_opt.temp_add;
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + exp_opt.temp_add;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
         % assign conversion efficiency according to average temperature
         N(i + j * N_x + 1).xi = eff(N(i + j * N_x + 1).Ti, A, ...
