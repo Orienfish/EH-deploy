@@ -178,7 +178,7 @@ dist = getDist(N, c);
 run.cplex = true;
 run.rdtsh = true;
 run.tsh = true;
-run.rdsrigh = true;
+run.rdsrigh = false;
 run.srigh = true;
 
 % Call the CPLEX solver
@@ -231,7 +231,7 @@ if run.rdtsh
             [xScalem, yScalem], 'RDTSH');
         sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
-        %export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH');
+        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH');
     else
         fprintf('No feasible solution for RDTSH!\n');
     end
@@ -252,7 +252,7 @@ if run.tsh
             [xScalem, yScalem], 'TSH');
         sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
-        %export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH');
+        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH');
     else
         fprintf('No feasible solution for TSH!\n');
     end
@@ -272,7 +272,7 @@ if run.rdsrigh
             [xScalem, yScalem], 'RDSRIGH');
         sol_rdsrigh = rel_check(sol_rdsrigh, N, dist, params, rel);
         log('RDSRIGH', sol_rdsrigh);
-        %export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH');
+        export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH');
     else
         fprintf('No feasible solution for RDSRIGH!\n');
     end
@@ -292,7 +292,7 @@ if run.srigh
             [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
-        %export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH');
+        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH');
     else
         fprintf('No feasible solution for SRIGH!\n');
     end
@@ -493,22 +493,22 @@ function export_solution(N, c, sol, dist, dataT, params, method)
                     'following the README instructions!\n']);
                 return;
             end
+            % export time series of temperature data
             f_name = f_list(1).name;
             T = readtable(append(folder, f_name), 'Delimiter', ',', ...
                 'HeaderLines', 2); % jump first two lines
             Tarray = T.Temperature(~isnan(T.Temperature)); % filter out nan
-            RCarray = T.DNI(~isnan(T.DNI)); % filter out nan
             for t_idx=1:floor(size(Tarray, 1)/8)
                 fprintf(filetempID, '%.2f ', mean(Tarray(8*(t_idx-1)+1:8*t_idx)));
-                fprintf(filercID, '%.2f ', mean(RCarray(8*(t_idx-1)+1:8*t_idx)) * ...
-                    N(i).xi * params.A);
             end
             fprintf(filetempID, '\n');
-            fprintf(filercID, '\n');
+            % export average recharging rate
+            fprintf(filercID, '%.2f\n', N(i).Ri);
         end
     end
     fclose(fileID);
     fclose(filetempID);
+    fclose(filercID);
     
     % export the deployed sink
     filename = sprintf('res/gw_%d_%s.txt', floor(sol.fval), method);
