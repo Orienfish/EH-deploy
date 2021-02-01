@@ -188,7 +188,7 @@ if exp.temp_sense
     iter = 20;
     
     % set the increased temperature to test
-    temp_list = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    temp_list = [4.0, 5.0, 6.0, 7.0, 8.0, 9.0];
     res_temp_l = [];
     for i=1:length(temp_list)
         fprintf('Running temp sensitivity test with temp add %.1f\n', temp_list(i));
