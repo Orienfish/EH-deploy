@@ -140,7 +140,7 @@ for i=1:N_cnt
                 rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
   
             weight_ji = rdtshparams.w1 * (x(j) == 0) + ...
-                rdtshparams.w2 * (P_inc/max(1e-10, (N(i).Pi - P_cur(i))));
+                rdtshparams.w2 * (P_inc/max(1e-10, (N(j).Pi - P_cur(j))));
             weights = [weights, weight_ij, weight_ji];
         end
     end
