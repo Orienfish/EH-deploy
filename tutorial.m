@@ -299,6 +299,71 @@ if run.srigh
     res.sol_srigh = sol_srigh;
 end
 
+%% Adaptive routing after deployment
+sol = sol_rdtsh;  % which solution to use
+sol.fij = zeros(N_cnt^2, 1);  % reset flow matrix between grids
+sol.fiB = zeros(N_cnt, 1);	  % reset flow vector to the sink
+
+% Adjust the temperature distribution and the corresponding reliability
+% power bound
+for i = 1:N_cnt
+    N(i).Ti = N(i).Ti + 0.0;
+    N(i).Tcen = N(i).Tcen(:) + 0.0;
+    N(i).MTTFi = mttf_solar(N(i));
+    % whether the solar panel reliability still satisfies with new temp
+    N(i).SPi = (N(i).MTTFi > rel.MTTFsolarref);
+end
+
+% Update power bounds corresponding to SoH and MTTF
+% convert the reliability constraints to power constraints
+Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
+if rel.SoH
+    % use piece-wise approximation of ambient temperature over time
+    P_soh = Psoh_bound(rel, N);
+    % use average ambient temperation at one location
+    %P_soh_Tavg = Psoh_bound_Tavg(rel.SoHref, rel.T, vertcat(N(:).Ti));
+    Pi = [Pi, P_soh];
+end
+if rel.MTTF
+    % use piece-wise approximation of ambient temperature over time
+    P_mttf = Pmttf_bound(rel, N);
+    % use average ambient temperation at one location
+    %P_mttf_Tavg = Pmttf_bound_Tavg(rel.MTTFref, vertcat(N(:).Ti));
+    Pi = [Pi, P_mttf];
+end
+disp(Pi(vertcat(N(:).SPi) > 0, :));
+Pi = min(Pi, [], 2); % get the column vector of min of each row
+for i = 1:N_cnt
+    N(i).Pi = Pi(i); % clip the power constraints to grid struct
+end
+
+% calculate the current power Pi for all grid locations
+P_cur = params.P0 + params.Es * params.eta * sol.s;  % list of current power
+                                                     % only sensing
+
+% Find the dynamic routing path
+% create the directed network graph
+G = create_routing_graph(sol.x, P_cur, N, dist, params);
+
+% find the shortest path from all selected sensors to the sink
+senidx = find(sol.x > 0.5); % get the indexes of selected sensors
+SP = shortestpathtree(G, senidx, N_cnt+1);
+% extract the [st, ed] nodes pair in the shortest path
+pair = reshape(SP.Edges.EndNodes(:), [], 2);
+for i=1:size(pair, 1)
+    st = pair(i, 1); ed = pair(i, 2);
+    % update flow matrix
+    if ed <= N_cnt % sending to another grid
+        fij_idx = (st-1) * N_cnt + ed;
+        sol.fij(fij_idx) = sol.fij(fij_idx) + params.eta * params.G;
+    else % sending to the sink
+        sol.fiB(st) = sol.fiB(st) + params.eta * params.G;
+    end
+end
+
+plot_solution(N, O, c, sol, params.S_r, [xScalem, yScalem], ...
+    'RDTSH adaptive routing');
+
 % end of tutorial
 
 %% Appendix functions
@@ -373,6 +438,53 @@ function [sol] = rel_check(sol, N, dist, params, rel)
     % calculate the violation percentage
     sol.vio = (sum(SoH < rel.SoHref) + sum(MTTF < rel.MTTFref)) / ...
         (2 * sum(sol.x));
+end
+
+%% create the network graph
+% Args:
+%   x: binary vector of current node placement
+%   P_cur: vector of current power at each node
+%   N: struct of the grid locations
+%   dist: distance matrix between grid locations and the sink
+%   params: necessary basic parameters
+%   rdtshparams: specific parameters for rdtsh
+%
+% Return:
+%   G: the graph for finding shortest path
+
+function G = create_routing_graph(x, P_cur, N, dist, params)
+% only keep the locations with sensors
+N_cnt = size(N, 1);
+st = [];
+ed = [];
+weights = [];
+for i=1:N_cnt
+    for j=i+1:N_cnt
+        if x(i) > 0.5 && x(j) > 0.5 && N(i).SPi > 0 && N(j).SPi > 0 && ...
+                dist(i, j) <= params.C_r
+            % if connectable, add pair [i, j] and [j, i] to [st, ed]
+            st = [st, i, j]; ed = [ed, j, i];
+            % increased transmission power due to placing relay node at i or j
+            P_inc = (getPtx(dist(i, j)) + params.Prx) * params.eta * ...
+                params.G / params.B;
+            weight_ij = P_inc/max(1e-10, (N(i).Pi - P_cur(i)));
+  
+            weight_ji = P_inc/max(1e-10, (N(j).Pi - P_cur(i)));
+            weights = [weights, weight_ij, weight_ji];
+        end
+    end
+    if x(i) > 0.5 && N(i).SPi > 0 && dist(i, N_cnt+1) <= params.C_r
+        % if connectable, add pair [i, sink] to [st, ed]
+        st = [st, i]; ed = [ed, N_cnt+1];
+        % increased transmission power due to placing relay node at i
+        P_inc = (getPtx(dist(i, N_cnt+1)) + params.Prx) * params.eta * ...
+            params.G / params.B;
+        weight_iB = P_inc/max(1e-10, (N(i).Pi - P_cur(i)));
+        weights = [weights, weight_iB];
+    end
+end
+G = digraph(st, ed, weights);
+%G.Edges
 end
 
 % logging function
