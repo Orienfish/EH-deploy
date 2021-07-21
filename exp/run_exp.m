@@ -183,6 +183,7 @@ if exp.temp_sense
     exp_opt.N_y = 100;
     exp_opt.N_o = 100;
     exp_opt.K = 2;                            % K-coverage
+    exp_opt.rel.MTTFsolarref = 0;
 
     % set test rounds
     iter = 20;
