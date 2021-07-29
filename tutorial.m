@@ -300,9 +300,9 @@ if run.srigh
 end
 
 %% Test adaptive routing after deployment
-sol_rt = run_adp_routing(N, dist, params, rel, sol_rdtsh, bt, tp);
+sol_rt = run_adp_routing(N, dist, params, rel, sol_rdtsh);
 plot_solution(N, O, c, sol_rt, params.S_r, [xScalem, yScalem], ...
-    sprintf('RDTSH adp routing inc temp %f°C at node %d', tp, bt));
+    'RDTSH adp routing');
 
 % end of tutorial
 
@@ -399,8 +399,8 @@ function sol = run_adp_routing(N, dist, params, rel, sol)
     % Adjust the temperature distribution and the corresponding reliability
     % power bound
     for i = 1:N_cnt
-        N(i).Ti = N(i).Ti + 4.0;
-        N(i).Tcen = N(i).Tcen(:) + 4.0;
+        N(i).Ti = N(i).Ti + 1.0;
+        N(i).Tcen = N(i).Tcen(:) + 1.0;
         N(i).MTTFi = mttf_solar(N(i));
         % whether the solar panel reliability still satisfies with new temp
         N(i).SPi = (N(i).MTTFi > rel.MTTFsolarref);
@@ -687,6 +687,17 @@ function export_solution(N, c, sol, dist, dataT, params, method)
     for i=1:N_cnt
         if sol.x(i) > 0.5
             fprintf(fileID, '%f\n', pwr(i));
+        end
+    end
+    fclose(fileID);
+    
+    % export power bound (from reliability) of all deployed node
+    % get the power bound at all grid locations
+    filename = sprintf('res/pbd_%d_%s.txt', floor(sol.fval), method);
+    fileID = fopen(filename, 'w');
+    for i=1:N_cnt
+        if sol.x(i) > 0.5
+            fprintf(fileID, '%f\n', N(i).Pi);
         end
     end
     fclose(fileID);
