@@ -299,70 +299,10 @@ if run.srigh
     res.sol_srigh = sol_srigh;
 end
 
-%% Adaptive routing after deployment
-sol = sol_rdtsh;  % which solution to use
-sol.fij = zeros(N_cnt^2, 1);  % reset flow matrix between grids
-sol.fiB = zeros(N_cnt, 1);	  % reset flow vector to the sink
-
-% Adjust the temperature distribution and the corresponding reliability
-% power bound
-for i = 1:N_cnt
-    N(i).Ti = N(i).Ti + 0.0;
-    N(i).Tcen = N(i).Tcen(:) + 0.0;
-    N(i).MTTFi = mttf_solar(N(i));
-    % whether the solar panel reliability still satisfies with new temp
-    N(i).SPi = (N(i).MTTFi > rel.MTTFsolarref);
-end
-
-% Update power bounds corresponding to SoH and MTTF
-% convert the reliability constraints to power constraints
-Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
-if rel.SoH
-    % use piece-wise approximation of ambient temperature over time
-    P_soh = Psoh_bound(rel, N);
-    % use average ambient temperation at one location
-    %P_soh_Tavg = Psoh_bound_Tavg(rel.SoHref, rel.T, vertcat(N(:).Ti));
-    Pi = [Pi, P_soh];
-end
-if rel.MTTF
-    % use piece-wise approximation of ambient temperature over time
-    P_mttf = Pmttf_bound(rel, N);
-    % use average ambient temperation at one location
-    %P_mttf_Tavg = Pmttf_bound_Tavg(rel.MTTFref, vertcat(N(:).Ti));
-    Pi = [Pi, P_mttf];
-end
-disp(Pi(vertcat(N(:).SPi) > 0, :));
-Pi = min(Pi, [], 2); % get the column vector of min of each row
-for i = 1:N_cnt
-    N(i).Pi = Pi(i); % clip the power constraints to grid struct
-end
-
-% calculate the current power Pi for all grid locations
-P_cur = params.P0 + params.Es * params.eta * sol.s;  % list of current power
-                                                     % only sensing
-
-% Find the dynamic routing path
-% create the directed network graph
-G = create_routing_graph(sol.x, P_cur, N, dist, params);
-
-% find the shortest path from all selected sensors to the sink
-senidx = find(sol.x > 0.5); % get the indexes of selected sensors
-SP = shortestpathtree(G, senidx, N_cnt+1);
-% extract the [st, ed] nodes pair in the shortest path
-pair = reshape(SP.Edges.EndNodes(:), [], 2);
-for i=1:size(pair, 1)
-    st = pair(i, 1); ed = pair(i, 2);
-    % update flow matrix
-    if ed <= N_cnt % sending to another grid
-        fij_idx = (st-1) * N_cnt + ed;
-        sol.fij(fij_idx) = sol.fij(fij_idx) + params.eta * params.G;
-    else % sending to the sink
-        sol.fiB(st) = sol.fiB(st) + params.eta * params.G;
-    end
-end
-
-plot_solution(N, O, c, sol, params.S_r, [xScalem, yScalem], ...
-    'RDTSH adaptive routing');
+%% Test adaptive routing after deployment
+sol_rt = run_adp_routing(N, dist, params, rel, sol_rdtsh, bt, tp);
+plot_solution(N, O, c, sol_rt, params.S_r, [xScalem, yScalem], ...
+    sprintf('RDTSH adp routing inc temp %f°C at node %d', tp, bt));
 
 % end of tutorial
 
@@ -440,7 +380,81 @@ function [sol] = rel_check(sol, N, dist, params, rel)
         (2 * sum(sol.x));
 end
 
-%% create the network graph
+%% Test adaptive routing on a given placement solution by increasing 
+%  temperature at the specified node
+% Args:
+%   N: struct of the grid locations
+%   dist: distance matrix between grid locations and the sink
+%   params: necessary basic parameters
+%   rel: the struct of reliability options and targets
+%   sol: the placement solution to base on
+% Return:
+%   sol: the solution with updated routing graph
+%
+function sol = run_adp_routing(N, dist, params, rel, sol)
+    N_cnt = size(N, 1);         % get number of grid locations
+    sol.fij = zeros(N_cnt^2, 1);  % reset flow matrix between grids
+    sol.fiB = zeros(N_cnt, 1);	  % reset flow vector to the sink
+
+    % Adjust the temperature distribution and the corresponding reliability
+    % power bound
+    for i = 1:N_cnt
+        N(i).Ti = N(i).Ti + 4.0;
+        N(i).Tcen = N(i).Tcen(:) + 4.0;
+        N(i).MTTFi = mttf_solar(N(i));
+        % whether the solar panel reliability still satisfies with new temp
+        N(i).SPi = (N(i).MTTFi > rel.MTTFsolarref);
+    end
+
+    % Update power bounds corresponding to SoH and MTTF
+    % convert the reliability constraints to power constraints
+    Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
+    if rel.SoH
+        % use piece-wise approximation of ambient temperature over time
+        P_soh = Psoh_bound(rel, N);
+        % use average ambient temperation at one location
+        %P_soh_Tavg = Psoh_bound_Tavg(rel.SoHref, rel.T, vertcat(N(:).Ti));
+        Pi = [Pi, P_soh];
+    end
+    if rel.MTTF
+        % use piece-wise approximation of ambient temperature over time
+        P_mttf = Pmttf_bound(rel, N);
+        % use average ambient temperation at one location
+        %P_mttf_Tavg = Pmttf_bound_Tavg(rel.MTTFref, vertcat(N(:).Ti));
+        Pi = [Pi, P_mttf];
+    end
+    disp(Pi(vertcat(N(:).SPi) > 0, :));
+    Pi = min(Pi, [], 2); % get the column vector of min of each row
+    for i = 1:N_cnt
+        N(i).Pi = Pi(i); % clip the power constraints to grid struct
+    end
+
+    % calculate the current power Pi for all grid locations
+    P_cur = params.P0 + params.Es * params.eta * sol.s;  % list of current power
+                                                         % only sensing
+
+    % Find the dynamic routing path
+    % create the directed network graph
+    G = create_routing_graph(sol.x, P_cur, N, dist, params);
+
+    % find the shortest path from all selected sensors to the sink
+    senidx = find(sol.x > 0.5); % get the indexes of selected sensors
+    SP = shortestpathtree(G, senidx, N_cnt+1);
+    % extract the [st, ed] nodes pair in the shortest path
+    pair = reshape(SP.Edges.EndNodes(:), [], 2);
+    for i=1:size(pair, 1)
+        st = pair(i, 1); ed = pair(i, 2);
+        % update flow matrix
+        if ed <= N_cnt % sending to another grid
+            fij_idx = (st-1) * N_cnt + ed;
+            sol.fij(fij_idx) = sol.fij(fij_idx) + params.eta * params.G;
+        else % sending to the sink
+            sol.fiB(st) = sol.fiB(st) + params.eta * params.G;
+        end
+    end
+end
+
+%% Create the network graph
 % Args:
 %   x: binary vector of current node placement
 %   P_cur: vector of current power at each node
@@ -451,7 +465,6 @@ end
 %
 % Return:
 %   G: the graph for finding shortest path
-
 function G = create_routing_graph(x, P_cur, N, dist, params)
 % only keep the locations with sensors
 N_cnt = size(N, 1);
@@ -467,9 +480,9 @@ for i=1:N_cnt
             % increased transmission power due to placing relay node at i or j
             P_inc = (getPtx(dist(i, j)) + params.Prx) * params.eta * ...
                 params.G / params.B;
-            weight_ij = P_inc/max(1e-10, (N(i).Pi - P_cur(i)));
+            weight_ij = exp(-(N(i).Pi - P_cur(i) - P_inc));
   
-            weight_ji = P_inc/max(1e-10, (N(j).Pi - P_cur(i)));
+            weight_ji = exp(-(N(j).Pi - P_cur(j) - P_inc));
             weights = [weights, weight_ij, weight_ji];
         end
     end
@@ -479,7 +492,7 @@ for i=1:N_cnt
         % increased transmission power due to placing relay node at i
         P_inc = (getPtx(dist(i, N_cnt+1)) + params.Prx) * params.eta * ...
             params.G / params.B;
-        weight_iB = P_inc/max(1e-10, (N(i).Pi - P_cur(i)));
+        weight_iB = exp(-(N(i).Pi - P_cur(i) - P_inc));
         weights = [weights, weight_iB];
     end
 end
@@ -496,8 +509,8 @@ function log(name, sol)
     fprintf('Execution time of %s: %f\n', name, sol.time);
 end
 
-% plot functions
-% plot the locations
+% Plot functions
+% Plot the locations
 function bubbleplot_wsize(lat, lon, sizedata, title)
     figure;
     geobubble(lat, lon, sizedata, 'Title', title);
@@ -506,7 +519,7 @@ function bubbleplot_wsize(lat, lon, sizedata, title)
     %geobasemap streets-light; % set base map style
 end
  %(P_inc(i, j)/max(1e-10, (N(i).Pi - params.P0)))
-% plot the heatmap of temperature in the grid space
+% Plot the heatmap of temperature in the grid space
 function plot_temp(N, N_x, N_y)
     temp = flipud(reshape(vertcat(N(:).Ti), [N_x, N_y])');
     figure;
@@ -514,7 +527,7 @@ function plot_temp(N, N_x, N_y)
         'CellLabelColor','none', 'FontSize', 16);
 end
 
-% plot the solution in the grid space
+% Plot the solution in the grid space
 function plot_solution(N, O, c, sol, S_r, maxlim, method)
     % intialization
     N_cnt = size(N, 1);  % number of grid locations
