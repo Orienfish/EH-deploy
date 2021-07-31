@@ -301,6 +301,8 @@ end
 
 %% Test adaptive routing after deployment
 sol_rt = run_adp_routing(N, dist, params, rel, sol_rdtsh);
+sol_rt = rel_check(sol_rt, N, dist, params, rel);
+log('Adaptive Routing', sol_rt);
 plot_solution(N, O, c, sol_rt, params.S_r, [xScalem, yScalem], ...
     'RDTSH adp routing');
 
@@ -399,8 +401,8 @@ function sol = run_adp_routing(N, dist, params, rel, sol)
     % Adjust the temperature distribution and the corresponding reliability
     % power bound
     for i = 1:N_cnt
-        N(i).Ti = N(i).Ti + 1.0;
-        N(i).Tcen = N(i).Tcen(:) + 1.0;
+        N(i).Ti = N(i).Ti + 2.0;
+        N(i).Tcen = N(i).Tcen(:) + 2.0;
         N(i).MTTFi = mttf_solar(N(i));
         % whether the solar panel reliability still satisfies with new temp
         N(i).SPi = (N(i).MTTFi > rel.MTTFsolarref);
@@ -473,7 +475,7 @@ ed = [];
 weights = [];
 for i=1:N_cnt
     for j=i+1:N_cnt
-        if x(i) > 0.5 && x(j) > 0.5 && N(i).SPi > 0 && N(j).SPi > 0 && ...
+        if x(i) > 0.5 && x(j) > 0.5 && ... %N(i).SPi > 0 && N(j).SPi > 0 && ...
                 dist(i, j) <= params.C_r
             % if connectable, add pair [i, j] and [j, i] to [st, ed]
             st = [st, i, j]; ed = [ed, j, i];
@@ -486,7 +488,8 @@ for i=1:N_cnt
             weights = [weights, weight_ij, weight_ji];
         end
     end
-    if x(i) > 0.5 && N(i).SPi > 0 && dist(i, N_cnt+1) <= params.C_r
+    if x(i) > 0.5 && ... %N(i).SPi > 0 && 
+            dist(i, N_cnt+1) <= params.C_r
         % if connectable, add pair [i, sink] to [st, ed]
         st = [st, i]; ed = [ed, N_cnt+1];
         % increased transmission power due to placing relay node at i
