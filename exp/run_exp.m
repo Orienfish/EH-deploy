@@ -43,10 +43,10 @@ run.srigh = false;
 run.rdsrigh = false;
 
 % which experiment to run
-exp.small = false;
-exp.large = false;
+exp.small = true;
+exp.large = true;
 exp.sparse = false;
-exp.temp_sense = true;
+exp.temp_sense = false;
 exp.rdtsh_weight = false;
 
 %% Experiment 1: small scale simulation
