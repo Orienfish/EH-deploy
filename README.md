@@ -9,7 +9,7 @@ Test environment: MATLAB R2019b/R2020b.
 **Important notes:**
 
 * Need [CPLEX](https://www.ibm.com/support/knowledgecenter/SSSA5P_12.8.0/ilog.odms.studio.help/pdf/gscplexmatlab.pdf) for MATLAB as the optimization solver. We are using CPLEX 12.10. Please remember to add the path to your CPLEX's MATLAB connector in the script that calls CPLEX (e.g., line 6/7 in `tutorial.m`).
-* Need to [download the original dataset](https://drive.google.com/file/d/1JPsemfas8NECFlbsROJ2Xk68mpG2GUIK/view?usp=sharing) if you want to export the temperature trace at each location. Move the downloaded `.csv` files under the `solardata` directory.
+* We share the dataset we downloaded from NSRDB and used in tests: [2010](https://drive.google.com/file/d/1GZgIVNEyIEzabM0pJ12qtzRJRasVEP2u/view?usp=sharing), [2019](https://drive.google.com/file/d/1JPsemfas8NECFlbsROJ2Xk68mpG2GUIK/view?usp=sharing), [2020](https://drive.google.com/file/d/1DisQ0pcctd8CMBdXAZR1LVG6zkjA3NW3/view?usp=sharing). Move the downloaded `.csv` files under the `solardata` directory.
 
 The `tutorial.m` will walk you through all of our algorithms on the dataset.
 
