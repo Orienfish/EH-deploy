@@ -76,8 +76,8 @@ for j = 0:N_y-1
         % memorize the original idx for final exportation
         N(i + j * N_x + 1).dataT_idx = dataT_idx;
         % assign the corresponding temperature distribution in Celsius
-        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + 4.0;
-        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + 4.0;
+        N(i + j * N_x + 1).Ti = dataT.temp_avg(dataT_idx) + exp_opt.temp_add;
+        N(i + j * N_x + 1).Tcen = Centers(dataT_idx, :) + exp_opt.temp_add;
         N(i + j * N_x + 1).Tcnt = Counts(dataT_idx, :);
         % assign conversion efficiency according to average temperature
         N(i + j * N_x + 1).xi = eff(N(i + j * N_x + 1).Ti, A, ...
@@ -120,6 +120,7 @@ rel = exp_opt.rel;
 MTTFi = vertcat(N(:).MTTFi);
 N = N(MTTFi > rel.MTTFsolarref);
 N_cnt = size(N, 1);
+res.sparse = N_cnt / (N_x * N_y);   % report the sparse result
 
 % convert the reliability constraints to power constraints
 Pi = vertcat(N(:).Ri) ;                 % power constraints (W)
@@ -230,7 +231,7 @@ end
 if run.rdtsh
     fprintf('calling RDTSH...\n');
     rdtshparams.w1 = 1;  % weight for placing new node
-    rdtshparams.w2 = 1.3;  % weight for remained power budget
+    rdtshparams.w2 = exp_opt.RDTSH_w2; %1.3;  % weight for remained power budget
     tic
     sol_rdtsh = RDTSH(N, O, dist, params, rdtshparams);
     sol_rdtsh.time = toc;
@@ -274,7 +275,7 @@ end
 if run.rdsrigh
     fprintf('calling RDSRIGH...\n');
     rdsrighparams.w1 = 1;      % cost for adding a new node
-    rdsrighparams.w2 = 12;     % cost for adding per area of solar panel
+    rdsrighparams.w2 = 20;     % cost for adding per area of solar panel
     tic
     sol_rdsrigh = RDSRIGH(N, O, dist, params, rdsrighparams);
     sol_rdsrigh.time = toc;

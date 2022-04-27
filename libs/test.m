@@ -107,10 +107,11 @@ figure('Position', [0 0 300 300]);
 plot(SoHref, P_sohr, '-*', 'LineWidth', 1);
 hold on;
 plot(MTTFref, P_mttfr, '-^', 'LineWidth', 1);
-xlabel('Target'); ylabel('Power Bound (W)');
-legend({'SoH Constraint', 'MTTF Constraint'}, 'FontSize', 16);
+xlabel('Electronics MTTF or SoH Bounds'); ylabel('Power Bound (W)');
+legend({'Battery SoH', 'Electronics MTTF'}, 'FontSize', 16);
 ax = gca; ax.FontSize = 16;
-title('Power bound (W) from SoH and MTTF at various ref. value');
+grid on;
+%title('Power bound (W) from SoH and MTTF at various ref. value');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compare single-use batteries and rechargable batteries
