@@ -13,7 +13,7 @@ addpath('./alg');
 %% Initialization of the grid map
 % pre-process solar and temperature data
 fprintf('start pre-processing...\n');
-folder = './solardata/';
+folder = './solardata_2010/';
 f_list = dir(append(folder, '*.csv'));
 dataT_sav = {append(folder, 'dataT.csv'), append(folder, 'Counts.csv'), ...
     append(folder, 'Centers.csv')}; % all processing data
@@ -194,7 +194,10 @@ if run.cplex
             [xScalem, yScalem], 'CPLEX w/o Rel');
         sol_wo = rel_check(sol_wo, N, dist, params, rel);
         log('OPT_wo', sol_wo);
-        export_solution(N, c, sol_wo, dist, dataT, params, 'OPT_wo', folder);
+        export_solution(N, c, sol_wo, dist, dataT, params, 'OPT_wo', ...
+            'res_2010', 'solardata_2010');
+        export_solution(N, c, sol_wo, dist, dataT, params, 'OPT_wo', ...
+            'res_2020', 'solardata_2020');
     else
         fprintf('No feasible solution for OPT_wo!\n');
     end
@@ -210,7 +213,10 @@ if run.cplex
             [xScalem, yScalem], 'CPLEX w/ Rel');
         sol_w = rel_check(sol_w, N, dist, params, rel);
         log('OPT', sol_w);
-        export_solution(N, c, sol_w, dist, dataT, params, 'OPT', folder);
+        export_solution(N, c, sol_w, dist, dataT, params, 'OPT', ...
+            'res_2010', 'solardata_2010');
+        export_solution(N, c, sol_w, dist, dataT, params, 'OPT', ...
+            'res_2020', 'solardata_2020');
     else
         fprintf('No feasible solution for OPT_w!\n');    
     end
@@ -231,7 +237,10 @@ if run.rdtsh
             [xScalem, yScalem], 'RDTSH');
         sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
-        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH', folder);
+        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH', ...
+            'res_2010', 'solardata_2010');
+        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH', ...
+            'res_2020', 'solardata_2020');
     else
         fprintf('No feasible solution for RDTSH!\n');
     end
@@ -252,7 +261,10 @@ if run.tsh
             [xScalem, yScalem], 'TSH');
         sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
-        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH', folder);
+        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH', ...
+            'res_2010', 'solardata_2010');
+        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH', ...
+            'res_2020', 'solardata_2020');
     else
         fprintf('No feasible solution for TSH!\n');
     end
@@ -272,7 +284,10 @@ if run.rdsrigh
             [xScalem, yScalem], 'RDSRIGH');
         sol_rdsrigh = rel_check(sol_rdsrigh, N, dist, params, rel);
         log('RDSRIGH', sol_rdsrigh);
-        export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH', folder);
+        export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH', ...
+            'res_2010', 'solardata_2010');
+        export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH', ...
+            'res_2020', 'solardata_2020');
     else
         fprintf('No feasible solution for RDSRIGH!\n');
     end
@@ -292,7 +307,10 @@ if run.srigh
             [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH', folder);
+        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH', ...
+            'res_2010', 'solardata_2010');
+        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH', ...
+            'res_2020', 'solardata_2020');
     else
         fprintf('No feasible solution for SRIGH!\n');
     end
@@ -589,21 +607,22 @@ function plot_solution(N, O, c, sol, S_r, maxlim, method)
 end
 
 % export the solution to text file
-function export_solution(N, c, sol, dist, dataT, params, method, folder)
+function export_solution(N, c, sol, dist, dataT, params, method, ...
+    res_folder, data_folder)
     N_cnt = size(N, 1);         % get number of grid locations
     
     % create one result folder if it doesn't exist
-    if ~exist('res', 'dir')
-       mkdir('res')
+    if ~exist(res_folder, 'dir')
+       mkdir(res_folder)
     end
     
     % export the deployed sensors and corresponding temperature traces
     % of every 4 hours at the real-world location
-    filename = sprintf('res/sr_%d_%s.txt', floor(sol.fval), method);
+    filename = sprintf(append(res_folder, '/sr_%d_%s.txt'), floor(sol.fval), method);
     fileID = fopen(filename, 'w');
-    filetemp = sprintf('res/temp_%d_%s.txt', floor(sol.fval), method);
+    filetemp = sprintf(append(res_folder, '/temp_%d_%s.txt'), floor(sol.fval), method);
     filetempID = fopen(filetemp, 'w');
-    filerc = sprintf('res/rc_%d_%s.txt', floor(sol.fval), method);
+    filerc = sprintf(append(res_folder, '/rc_%d_%s.txt'), floor(sol.fval), method);
     filercID = fopen(filerc, 'w');
     for i=1:N_cnt
         if sol.x(i) > 0.5
@@ -614,7 +633,7 @@ function export_solution(N, c, sol, dist, dataT, params, method, folder)
             pos_str = sprintf('%.2f_%.2f', dataT.lat(dataT_idx), ...
                 dataT.lon(dataT_idx));
             
-            f_list = dir(append(folder, sprintf('*%s*.csv', pos_str)));
+            f_list = dir(append(data_folder, sprintf('/*%s*.csv', pos_str)));
             if isempty(f_list)
                 fprintf(['Solution Export Error! No trace file!\n', ...
                     'Please make sure you download the orignal dataset ', ...
@@ -623,7 +642,7 @@ function export_solution(N, c, sol, dist, dataT, params, method, folder)
             end
             % export time series of temperature and recharging rate
             f_name = f_list(1).name;
-            T = readtable(append(folder, f_name), 'Delimiter', ',', ...
+            T = readtable(append(data_folder, append('/', f_name)), 'Delimiter', ',', ...
                 'HeaderLines', 2); % jump first two lines
             Tarray = T.Temperature(~isnan(T.Temperature)); % filter out nan
             RCarray = T.DNI(~isnan(T.DNI)); % filter out nan
@@ -641,13 +660,13 @@ function export_solution(N, c, sol, dist, dataT, params, method, folder)
     fclose(filercID);
     
     % export the deployed sink
-    filename = sprintf('res/gw_%d_%s.txt', floor(sol.fval), method);
+    filename = sprintf(append(res_folder, '/gw_%d_%s.txt'), floor(sol.fval), method);
     fileID = fopen(filename, 'w');
     fprintf(fileID, '%f %f\n', c(1), c(2));
     fclose(fileID);
     
     % export the flow matrix
-    filename = sprintf('res/fl_%d_%s.txt', floor(sol.fval), method);
+    filename = sprintf(append(res_folder, '/fl_%d_%s.txt'), floor(sol.fval), method);
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         % export flow to other relay nodes
@@ -665,7 +684,7 @@ function export_solution(N, c, sol, dist, dataT, params, method, folder)
     fclose(fileID);
     
     % export the transmission power matrix
-    filename = sprintf('res/ptx_%d_%s.txt', floor(sol.fval), method);
+    filename = sprintf(append(res_folder, '/ptx_%d_%s.txt'), floor(sol.fval), method);
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         % only consider placed nodes
@@ -685,7 +704,7 @@ function export_solution(N, c, sol, dist, dataT, params, method, folder)
     % export power of all deployed node
     % get the power at all grid locations
     pwr = getPwr(sol, N, dist, params);
-    filename = sprintf('res/pwr_%d_%s.txt', floor(sol.fval), method);
+    filename = sprintf(append(res_folder, '/pwr_%d_%s.txt'), floor(sol.fval), method);
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         if sol.x(i) > 0.5
@@ -696,7 +715,7 @@ function export_solution(N, c, sol, dist, dataT, params, method, folder)
     
     % export power bound (from reliability) of all deployed node
     % get the power bound at all grid locations
-    filename = sprintf('res/pbd_%d_%s.txt', floor(sol.fval), method);
+    filename = sprintf(append(res_folder, '/pbd_%d_%s.txt'), floor(sol.fval), method);
     fileID = fopen(filename, 'w');
     for i=1:N_cnt
         if sol.x(i) > 0.5
