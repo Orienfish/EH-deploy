@@ -175,7 +175,7 @@ dist = getDist(N, c);
 
 %% Call solvers
 % options to run which solver/algorithm
-run.cplex = true;
+run.cplex = false;
 run.rdtsh = true;
 run.tsh = true;
 run.rdsrigh = false;
@@ -194,7 +194,7 @@ if run.cplex
             [xScalem, yScalem], 'CPLEX w/o Rel');
         sol_wo = rel_check(sol_wo, N, dist, params, rel);
         log('OPT_wo', sol_wo);
-        export_solution(N, c, sol_wo, dist, dataT, params, 'OPT_wo');
+        export_solution(N, c, sol_wo, dist, dataT, params, 'OPT_wo', folder);
     else
         fprintf('No feasible solution for OPT_wo!\n');
     end
@@ -210,7 +210,7 @@ if run.cplex
             [xScalem, yScalem], 'CPLEX w/ Rel');
         sol_w = rel_check(sol_w, N, dist, params, rel);
         log('OPT', sol_w);
-        export_solution(N, c, sol_w, dist, dataT, params, 'OPT');
+        export_solution(N, c, sol_w, dist, dataT, params, 'OPT', folder);
     else
         fprintf('No feasible solution for OPT_w!\n');    
     end
@@ -231,7 +231,7 @@ if run.rdtsh
             [xScalem, yScalem], 'RDTSH');
         sol_rdtsh = rel_check(sol_rdtsh, N, dist, params, rel);
         log('RDTSH', sol_rdtsh);
-        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH');
+        export_solution(N, c, sol_rdtsh, dist, dataT, params, 'RDTSH', folder);
     else
         fprintf('No feasible solution for RDTSH!\n');
     end
@@ -252,7 +252,7 @@ if run.tsh
             [xScalem, yScalem], 'TSH');
         sol_tsh = rel_check(sol_tsh, N, dist, params, rel);
         log('TSH', sol_tsh);
-        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH');
+        export_solution(N, c, sol_tsh, dist, dataT, params, 'TSH', folder);
     else
         fprintf('No feasible solution for TSH!\n');
     end
@@ -272,7 +272,7 @@ if run.rdsrigh
             [xScalem, yScalem], 'RDSRIGH');
         sol_rdsrigh = rel_check(sol_rdsrigh, N, dist, params, rel);
         log('RDSRIGH', sol_rdsrigh);
-        export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH');
+        export_solution(N, c, sol_rdsrigh, dist, dataT, params, 'RDSRIGH', folder);
     else
         fprintf('No feasible solution for RDSRIGH!\n');
     end
@@ -292,7 +292,7 @@ if run.srigh
             [xScalem, yScalem], 'SRIGH');
         sol_srigh = rel_check(sol_srigh, N, dist, params, rel);
         log('SRIGH', sol_srigh);
-        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH');
+        export_solution(N, c, sol_srigh, dist, dataT, params, 'SRIGH', folder);
     else
         fprintf('No feasible solution for SRIGH!\n');
     end
@@ -589,7 +589,7 @@ function plot_solution(N, O, c, sol, S_r, maxlim, method)
 end
 
 % export the solution to text file
-function export_solution(N, c, sol, dist, dataT, params, method)
+function export_solution(N, c, sol, dist, dataT, params, method, folder)
     N_cnt = size(N, 1);         % get number of grid locations
     
     % create one result folder if it doesn't exist
@@ -613,7 +613,7 @@ function export_solution(N, c, sol, dist, dataT, params, method)
             dataT_idx = N(i).dataT_idx;
             pos_str = sprintf('%.2f_%.2f', dataT.lat(dataT_idx), ...
                 dataT.lon(dataT_idx));
-            folder = './solardata/';
+            
             f_list = dir(append(folder, sprintf('*%s*.csv', pos_str)));
             if isempty(f_list)
                 fprintf(['Solution Export Error! No trace file!\n', ...
